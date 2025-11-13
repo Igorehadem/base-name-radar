@@ -3,7 +3,7 @@ import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 import { namehash, labelhash } from "viem/ens";
 
-const ENS_REGISTRY = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
+const ENS_REGISTRY = "0x48dfb8b33a3c2fe2a12eefefc02cb9a22d10d5c1";
 
 export async function GET(
   _req: Request,
