@@ -1,17 +1,62 @@
-// Simple placeholder scanner.
-// Later this will be upgraded to real ENS/BNS "taken vs free" checks.
+// Real ENS-based name scanner for Base
+// Detects when a name changes from "taken" → "free"
+// and updates data/radar.json accordingly.
 
 import fs from "fs";
 import path from "path";
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
+
+const ENS_REGISTRY = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
+
+// Names to monitor — later can be replaced by dictionary or generator
+const monitoredNames = [
+  "alpha",
+  "beta",
+  "solarpunk",
+  "xyz",
+  "orbit",
+  "builder",
+  "chain",
+  "matrix",
+];
 
 interface RadarItem {
   name: string;
   freedAt: string;
 }
 
+async function getOwner(name: string, client: any) {
+  try {
+    const label = name.trim().toLowerCase();
+    const labelhash = await client.camelCase.hash(label);
+
+    const owner = await client.readContract({
+      address: ENS_REGISTRY as `0x${string}`,
+      abi: [
+        {
+          name: "owner",
+          type: "function",
+          constant: true,
+          inputs: [{ name: "node", type: "bytes32" }],
+          outputs: [{ name: "owner", type: "address" }],
+        },
+      ],
+      functionName: "owner",
+      args: [labelhash],
+    });
+
+    return owner;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
-  // names to monitor (later will expand with dictionary)
-  const monitoredNames = ["alpha", "beta", "testname", "xyz", "solarpunk"];
+  const client = createPublicClient({
+    chain: base,
+    transport: http(process.env.RPC_BASE),
+  });
 
   const radarPath = path.join(process.cwd(), "data", "radar.json");
 
@@ -20,24 +65,30 @@ async function main() {
     radar = JSON.parse(fs.readFileSync(radarPath, "utf8"));
   }
 
-  // CURRENT: placeholder logic — we simulate that "xyz" became free.
-  // LATER: real ENS/BNS check: name is free if resolver.owner == zero address.
-  const freedName = "xyz";
+  console.log("Starting scan...");
 
-  const alreadyInRadar = radar.some((r) => r.name === freedName);
+  for (const name of monitoredNames) {
+    const owner = await getOwner(name, client);
+    const isFree = owner === "0x0000000000000000000000000000000000000000";
 
-  if (!alreadyInRadar) {
-    radar.unshift({
-      name: freedName,
-      freedAt: new Date().toISOString(),
-    });
+    if (isFree) {
+      const alreadyListed = radar.some((item) => item.name === name);
+      if (!alreadyListed) {
+        radar.unshift({
+          name,
+          freedAt: new Date().toISOString(),
+        });
 
-    fs.writeFileSync(radarPath, JSON.stringify(radar, null, 2), "utf8");
-
-    console.log(`Added new freed name: ${freedName}`);
-  } else {
-    console.log("No new freed names detected");
+        console.log(`✔ Name freed: ${name}`);
+      }
+    } else {
+      console.log(`✘ Taken: ${name}`);
+    }
   }
+
+  fs.writeFileSync(radarPath, JSON.stringify(radar, null, 2), "utf8");
+
+  console.log("Scan complete.");
 }
 
 main();
