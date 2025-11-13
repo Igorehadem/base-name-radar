@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
+import { namehash, labelhash } from "viem/ens";
 
-// Base uses standard ENS registry: 0x000...018
 const ENS_REGISTRY = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
 
 export async function GET(
   _req: Request,
   context: { params: { name: string } }
 ) {
-  const name = context.params.name.trim().toLowerCase();
+  const raw = context.params.name.trim().toLowerCase();
 
-  if (!name) {
-    return NextResponse.json(
-      { error: "No name provided" },
-      { status: 400 }
-    );
+  if (!raw) {
+    return NextResponse.json({ error: "No name provided" }, { status: 400 });
   }
+
+  // ENS supports hierarchical names (e.g., abc.eth)
+  // For Base Names, we assume simple labels (e.g., "alpha")
+  const label = raw;
+  const node = namehash(label);
+  const labelHash = labelhash(label);
 
   try {
     const client = createPublicClient({
@@ -24,32 +27,32 @@ export async function GET(
       transport: http(process.env.RPC_BASE),
     });
 
-    // Convert name → labelhash
-    const label = name.split(".")[0];
-    const labelhash = await client.camelCase.hash(name);
-
-    // Call ENS registry — owner(address,name)
+    // Call ENS Registry owner(node)
     const owner = await client.readContract({
-      address: ENS_REGISTRY as `0x${string}`,
+      address: ENS_REGISTRY,
       abi: [
         {
           name: "owner",
           type: "function",
-          constant: true,
+          stateMutability: "view",
           inputs: [{ name: "node", type: "bytes32" }],
           outputs: [{ name: "owner", type: "address" }],
         },
       ],
       functionName: "owner",
-      args: [labelhash],
+      args: [node], // node = namehash(label)
     });
 
-    const available = owner === "0x0000000000000000000000000000000000000000";
+    const available =
+      owner.toLowerCase() ===
+      "0x0000000000000000000000000000000000000000";
 
     return NextResponse.json({
-      name,
-      owner,
+      name: raw,
+      node,
+      labelHash,
       available,
+      owner,
       chain: "base",
     });
   } catch (err: any) {
