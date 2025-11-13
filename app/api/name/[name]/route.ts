@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
-import { namehash, labelhash } from "viem/ens";
 
-const ENS_REGISTRY = "0x48dfb8b33a3c2fe2a12eefefc02cb9a22d10d5c1";
+// Open Name Service Registry on Base
+const ONS_REGISTRY = "0x5f8f39cae195d2bea3dc6480740d5eecba9a7f51";
+
+const ABI = [
+  {
+    "inputs": [{ "internalType": "string", "name": "name", "type": "string" }],
+    "name": "available",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
 
 export async function GET(
   _req: Request,
@@ -15,45 +25,24 @@ export async function GET(
     return NextResponse.json({ error: "No name provided" }, { status: 400 });
   }
 
-  // ENS supports hierarchical names (e.g., abc.eth)
-  // For Base Names, we assume simple labels (e.g., "alpha")
-  const label = raw;
-  const node = namehash(label);
-  const labelHash = labelhash(label);
-
   try {
     const client = createPublicClient({
       chain: base,
       transport: http(process.env.RPC_BASE),
     });
 
-    // Call ENS Registry owner(node)
-    const owner = await client.readContract({
-      address: ENS_REGISTRY,
-      abi: [
-        {
-          name: "owner",
-          type: "function",
-          stateMutability: "view",
-          inputs: [{ name: "node", type: "bytes32" }],
-          outputs: [{ name: "owner", type: "address" }],
-        },
-      ],
-      functionName: "owner",
-      args: [node], // node = namehash(label)
+    const available = await client.readContract({
+      address: ONS_REGISTRY,
+      abi: ABI,
+      functionName: "available",
+      args: [raw],
     });
-
-    const available =
-      owner.toLowerCase() ===
-      "0x0000000000000000000000000000000000000000";
 
     return NextResponse.json({
       name: raw,
-      node,
-      labelHash,
       available,
-      owner,
       chain: "base",
+      registry: ONS_REGISTRY
     });
   } catch (err: any) {
     return NextResponse.json(
