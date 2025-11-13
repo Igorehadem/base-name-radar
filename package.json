@@ -1,0 +1,13 @@
+{
+  "name": "base-name-radar",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "scan": "node scripts/scan-names.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
