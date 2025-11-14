@@ -10,34 +10,36 @@ export async function GET(
     return NextResponse.json({ error: "No name provided" }, { status: 400 });
   }
 
-  const url = `https://api.neynar.com/v2/farcaster/user?username=${name}`;
+  const url = `https://client.warpcast.com/v2/user-by-username?username=${name}`;
 
   try {
-    const res = await fetch(url, {
-      headers: {
-        "x-api-key": process.env.NEYNAR_API_KEY!,
-      },
-    });
+    const res = await fetch(url);
 
+    // Имя не существует → свободно
     if (res.status === 404) {
       return NextResponse.json({
         name,
         available: true,
-        service: "neynar-farcaster-base-names",
+        owner: null,
+        service: "warpcast-public-api"
       });
     }
 
+    // Существующий пользователь → имя занято
     const json = await res.json();
 
     return NextResponse.json({
       name,
       available: false,
       owner: json.result.user.fid,
-      service: "neynar-farcaster-base-names",
+      username: json.result.user.username,
+      pfp: json.result.user.pfp_url,
+      service: "warpcast-public-api"
     });
+
   } catch (err: any) {
     return NextResponse.json(
-      { error: "Resolver failed", details: err.message },
+      { error: "Warpcast API error", details: err.message },
       { status: 500 }
     );
   }
