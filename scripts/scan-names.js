@@ -1,10 +1,10 @@
-import fs from "fs";
-import path from "path";
-import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
+// scripts/scan-names.js
+// Simple placeholder scanner for Base Name Radar.
+// For now it just reads data/radar.json (if exists) and logs stats.
+// Later we'll replace it with real Warpcast-based scanner.
 
-// Dummy scanner — left intentionally minimal.
-// (We will rewrite it to Warpcast-based scanning later.)
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const radarPath = path.join(process.cwd(), "data", "radar.json");
@@ -14,8 +14,12 @@ async function main() {
     radar = JSON.parse(fs.readFileSync(radarPath, "utf8"));
   }
 
-  console.log("Scanner placeholder running...");
-  console.log("Nothing to scan yet — using Warpcast API soon.");
+  console.log("🔭 Base Name Radar — placeholder scan");
+  console.log(`Existing radar entries: ${radar.length}`);
+  console.log("Nothing to scan yet — will use Warpcast API soon.");
 }
 
-main();
+main().catch((err) => {
+  console.error("Scan failed:", err);
+  process.exit(1);
+});
