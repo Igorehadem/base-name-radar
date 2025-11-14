@@ -1,48 +1,39 @@
 import { NextResponse } from "next/server";
-import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
-
-// Open Name Service Registry on Base
-const ONS_REGISTRY = "0x5f8f39cae195d2bea3dc6480740d5eecba9a7f51";
-
-const ABI = [
-  {
-    "inputs": [{ "internalType": "string", "name": "name", "type": "string" }],
-    "name": "available",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
-  }
-];
 
 export async function GET(
   _req: Request,
   context: { params: { name: string } }
 ) {
-  const raw = context.params.name.trim().toLowerCase();
+  const name = context.params.name.trim().toLowerCase();
 
-  if (!raw) {
+  if (!name) {
     return NextResponse.json({ error: "No name provided" }, { status: 400 });
   }
 
+  const url = `https://api.neynar.com/v2/farcaster/user?username=${name}`;
+
   try {
-    const client = createPublicClient({
-      chain: base,
-      transport: http(process.env.RPC_BASE),
+    const res = await fetch(url, {
+      headers: {
+        "x-api-key": process.env.NEYNAR_API_KEY!,
+      },
     });
 
-    const available = await client.readContract({
-      address: ONS_REGISTRY,
-      abi: ABI,
-      functionName: "available",
-      args: [raw],
-    });
+    if (res.status === 404) {
+      return NextResponse.json({
+        name,
+        available: true,
+        service: "neynar-farcaster-base-names",
+      });
+    }
+
+    const json = await res.json();
 
     return NextResponse.json({
-      name: raw,
-      available,
-      chain: "base",
-      registry: ONS_REGISTRY
+      name,
+      available: false,
+      owner: json.result.user.fid,
+      service: "neynar-farcaster-base-names",
     });
   } catch (err: any) {
     return NextResponse.json(
