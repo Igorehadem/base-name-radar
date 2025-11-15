@@ -1,19 +1,34 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
-export const revalidate = 0;
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const BASE = process.env.NEXT_PUBLIC_BASE_URL!;
+
+export async function GET() {
+  return NextResponse.json({
+    frames: [
+      {
+        image: `${BASE}/api/og?state=start`,
+        text: "Check any Base name",
+        inputText: "yourname",
+        buttons: [{ label: "Check name", action: "post" }],
+      },
+    ],
+  });
+}
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const name = body.untrustedData.inputText?.trim()?.toLowerCase() || "";
+  const name = body.untrustedData?.inputText?.trim()?.toLowerCase() || "";
 
   if (!name) {
     return NextResponse.json({
       frames: [
         {
-          text: "Enter a Base name to check",
-          image: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?state=empty`,
+          image: `${BASE}/api/og?state=empty`,
+          text: "Enter a name below",
           inputText: "yourname",
           buttons: [{ label: "Check name", action: "post" }],
         },
@@ -21,42 +36,28 @@ export async function POST(req: Request) {
     });
   }
 
-  // Запрос к нашему API
-  const result = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/name/${name}`
-  ).then((r) => r.json());
-
-  const available = result.available;
+  // Проверка имени
+  const info = await fetch(`${BASE}/api/name/${name}`).then((r) => r.json());
+  const available = info.available;
 
   return NextResponse.json({
     frames: [
       {
-        image: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?name=${name}&status=${available ? "available" : "taken"}`,
+        image: `${BASE}/api/og?name=${name}&status=${
+          available ? "available" : "taken"
+        }`,
         text: available
           ? `Name "${name}" is AVAILABLE 🎉`
           : `Name "${name}" is taken`,
+        inputText: "yourname",
         buttons: [
-          { label: "Check another", action: "post" },
+          { label: "Check again", action: "post" },
           {
             label: "Open in Warpcast",
             action: "link",
             target: `https://warpcast.com/~/n/${name}`,
           },
         ],
-        inputText: "yourname",
-      },
-    ],
-  });
-}
-
-export async function GET() {
-  return NextResponse.json({
-    frames: [
-      {
-        image: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?state=start`,
-        text: "Check any base name",
-        inputText: "yourname",
-        buttons: [{ label: "Check name", action: "post" }],
       },
     ],
   });
