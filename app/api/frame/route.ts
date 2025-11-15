@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { frameResponse } from "@/frame/helpers/response";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -7,7 +8,7 @@ export const revalidate = 0;
 const BASE = process.env.NEXT_PUBLIC_BASE_URL!;
 
 export async function GET() {
-  return NextResponse.json({
+  return frameResponse({
     frames: [
       {
         image: `${BASE}/api/og?state=start`,
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
   const name = body.untrustedData?.inputText?.trim()?.toLowerCase() || "";
 
   if (!name) {
-    return NextResponse.json({
+    return frameResponse({
       frames: [
         {
           image: `${BASE}/api/og?state=empty`,
@@ -36,11 +37,10 @@ export async function POST(req: Request) {
     });
   }
 
-  // Проверка имени
   const info = await fetch(`${BASE}/api/name/${name}`).then((r) => r.json());
   const available = info.available;
 
-  return NextResponse.json({
+  return frameResponse({
     frames: [
       {
         image: `${BASE}/api/og?name=${name}&status=${
