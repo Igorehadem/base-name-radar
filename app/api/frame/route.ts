@@ -1,20 +1,21 @@
-import { NextResponse } from "next/server";
-
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
-function json(data: any) {
-  return new NextResponse(JSON.stringify(data), {
+function rawJson(obj: any) {
+  const json = JSON.stringify(obj);
+
+  return new Response(json, {
+    status: 200,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "no-store"
+      "Content-Length": String(json.length),
+      "Cache-Control": "no-store, no-cache, max-age=0",
     }
   });
 }
 
-// GET: initial frame
 export async function GET() {
-  return json({
+  return rawJson({
     version: "vNext",
     image: "https://igoreha.online/api/og?state=start",
     inputText: "yourname",
@@ -24,13 +25,12 @@ export async function GET() {
   });
 }
 
-// POST: handle input
 export async function POST(req: Request) {
   const body = await req.json();
   const input = body?.untrustedData?.inputText || "";
   const name = input.trim().toLowerCase();
 
-  return json({
+  return rawJson({
     version: "vNext",
     image: `https://igoreha.online/api/og?state=result&name=${name}`,
     buttons: [
@@ -39,10 +39,7 @@ export async function POST(req: Request) {
         action: "link",
         target: `https://igoreha.online/check?name=${name}`
       },
-      {
-        label: "Check another",
-        action: "post"
-      }
+      { label: "Check another", action: "post" }
     ]
   });
 }
