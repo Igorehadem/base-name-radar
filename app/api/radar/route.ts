@@ -12,7 +12,7 @@ type RadarItem = {
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "radar.json");
+    const filePath = path.join(process.cwd(), "public", "data", "radar.json");
     const content = await readFile(filePath, "utf8");
     const raw = JSON.parse(content) as RadarItem[] | unknown;
 
