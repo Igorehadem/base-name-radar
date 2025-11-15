@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "name": "Base Name Radar",
+  "iconUrl": "https://igoreha.online/icon.png",
+  "homeUrl": "https://igoreha.online",
+  "frame": {
+    "root": "https://igoreha.online/api/frame"
+  }
+}
