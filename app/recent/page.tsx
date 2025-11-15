@@ -24,6 +24,7 @@ export default function RecentPage() {
   });
 
   const isLoading = !data && !error;
+  const list = data?.slice(0, 50) || [];
 
   return (
     <div style={styles.container}>
@@ -36,7 +37,7 @@ export default function RecentPage() {
       )}
 
       <div style={styles.grid}>
-        {data?.map((item: any, i: number) => (
+        {list.map((item: any, i: number) => (
           <div
             key={i}
             style={{
