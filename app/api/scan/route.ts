@@ -2,18 +2,26 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-export const dynamic = "force-dynamic"; // always run fresh on server
+export const dynamic = "force-dynamic";
+
+// Тип записи в радаре
+type RadarItem = {
+  name: string;
+  timestamp: number;
+};
 
 export async function GET() {
   try {
     const radarPath = path.join(process.cwd(), "data", "radar.json");
 
-    let radar = [];
+    let radar: RadarItem[] = [];
+
     if (fs.existsSync(radarPath)) {
-      radar = JSON.parse(fs.readFileSync(radarPath, "utf8"));
+      const raw = fs.readFileSync(radarPath, "utf8");
+      radar = JSON.parse(raw) as RadarItem[];
     }
 
-    // TODO: replace with real Warpcast scanner soon
+    // временный placeholder (потом уберём)
     radar.push({
       name: "placeholder",
       timestamp: Date.now(),
@@ -23,9 +31,6 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, updated: radar.length });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
