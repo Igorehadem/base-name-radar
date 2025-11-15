@@ -36,6 +36,12 @@ export default function RecentPage() {
         <p style={styles.empty}>No recently freed names yet.</p>
       )}
 
+      {data && data.length > 0 && (
+        <div style={styles.updated}>
+          Last update: {timeAgo(data[0].timestamp)}
+        </div>
+      )}
+
       <div style={styles.grid}>
         {list.map((item: any, i: number) => (
           <div
@@ -110,6 +116,12 @@ const styles: Record<string, any> = {
     fontSize: "14px",
     opacity: 0.7,
     marginBottom: "12px",
+  },
+  updated: {
+    textAlign: "center",
+    fontSize: "14px",
+    opacity: 0.6,
+    marginBottom: "20px",
   },
   link: {
     fontSize: "15px",
