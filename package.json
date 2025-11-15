@@ -11,6 +11,7 @@
   "dependencies": {
   "viem": "2.9.7",
   "wagmi": "2.5.7",
+  "@vercel/og": "0.6.2",
   "@wagmi/core": "2.6.5",
   "zustand": "4.5.2",
   "next": "14.1.0",
