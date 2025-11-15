@@ -3,6 +3,17 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+function timeAgo(ts: string) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
 export default function RecentPage() {
   const { data, error, isValidating } = useSWR("/api/radar", fetcher, {
     refreshInterval: 15000,
@@ -26,7 +37,7 @@ export default function RecentPage() {
             <div style={styles.name}>{item.name}</div>
 
             <div style={styles.meta}>
-              Freed: {new Date(item.timestamp).toLocaleString()}
+              Freed: {timeAgo(item.timestamp)}
             </div>
 
             <a href={`/check?name=${item.name}`} style={styles.link}>
