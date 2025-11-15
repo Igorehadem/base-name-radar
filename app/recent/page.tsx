@@ -14,6 +14,10 @@ function timeAgo(ts: string) {
   return `${d}d ago`;
 }
 
+function isFresh(ts: string) {
+  return Date.now() - new Date(ts).getTime() < 10 * 60 * 1000;
+}
+
 export default function RecentPage() {
   const { data, error, isValidating } = useSWR("/api/radar", fetcher, {
     refreshInterval: 15000,
@@ -33,7 +37,16 @@ export default function RecentPage() {
 
       <div style={styles.grid}>
         {data?.map((item: any, i: number) => (
-          <div key={i} style={styles.card}>
+          <div
+            key={i}
+            style={{
+              ...styles.card,
+              borderColor: isFresh(item.timestamp) ? "#3b82f6" : "#333",
+              boxShadow: isFresh(item.timestamp)
+                ? "0 0 12px rgba(59,130,246,0.3)"
+                : "none",
+            }}
+          >
             <div style={styles.name}>{item.name}</div>
 
             <div style={styles.meta}>
