@@ -3,38 +3,43 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
-// GET: стартовый экран Frame
+function json(data: any) {
+  return new NextResponse(JSON.stringify(data), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    }
+  });
+}
+
+// GET (initial frame)
 export async function GET() {
-  return NextResponse.json({
+  return json({
     version: "vNext",
     image: "https://igoreha.online/api/og?state=start",
     text: "Check any Base name",
     inputText: "yourname",
     buttons: [
-      {
-        label: "Check name",
-        action: "post"
-      }
+      { label: "Check name", action: "post" }
     ]
   });
 }
 
-// POST: обработка ввода пользователя
+// POST (user submits text)
 export async function POST(req: Request) {
   const body = await req.json();
   const input = body?.untrustedData?.inputText || "";
+  const name = input.trim().toLowerCase();
 
-  const formatted = input.trim().toLowerCase();
-
-  return NextResponse.json({
+  return json({
     version: "vNext",
-    image: `https://igoreha.online/api/og?state=result&name=${formatted}`,
-    text: `Checking name: ${formatted}`,
+    image: `https://igoreha.online/api/og?state=result&name=${name}`,
+    text: `Checking: ${name}`,
     buttons: [
       {
         label: "Open in Radar",
         action: "link",
-        target: `https://igoreha.online/check?name=${formatted}`
+        target: `https://igoreha.online/check?name=${name}`
       },
       {
         label: "Check another",
