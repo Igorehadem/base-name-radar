@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import { default as useSWR } from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
