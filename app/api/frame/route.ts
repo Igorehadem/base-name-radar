@@ -1,36 +1,31 @@
-export const runtime = "edge";
+// No edge runtime — use Node.js so Warpcast accepts Content-Length
+
+import { NextResponse } from "next/server";
+
 export const dynamic = "force-dynamic";
 
-function rawJson(obj: any) {
-  const json = JSON.stringify(obj);
-
-  return new Response(json, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": String(json.length),
-      "Cache-Control": "no-store, no-cache, max-age=0",
-    }
-  });
-}
-
 export async function GET() {
-  return rawJson({
+  const payload = {
     version: "vNext",
     image: "https://igoreha.online/api/og?state=start",
     inputText: "yourname",
     buttons: [
       { label: "Check name", action: "post" }
     ]
+  };
+
+  return NextResponse.json(payload, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
   });
 }
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const input = body?.untrustedData?.inputText || "";
-  const name = input.trim().toLowerCase();
+  const name = (body?.untrustedData?.inputText || "").trim().toLowerCase();
 
-  return rawJson({
+  const payload = {
     version: "vNext",
     image: `https://igoreha.online/api/og?state=result&name=${name}`,
     buttons: [
@@ -41,5 +36,11 @@ export async function POST(req: Request) {
       },
       { label: "Check another", action: "post" }
     ]
+  };
+
+  return NextResponse.json(payload, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
   });
 }
