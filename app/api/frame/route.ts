@@ -12,12 +12,11 @@ function json(data: any) {
   });
 }
 
-// GET (initial frame)
+// GET: initial frame
 export async function GET() {
   return json({
     version: "vNext",
     image: "https://igoreha.online/api/og?state=start",
-    text: "Check any Base name",
     inputText: "yourname",
     buttons: [
       { label: "Check name", action: "post" }
@@ -25,7 +24,7 @@ export async function GET() {
   });
 }
 
-// POST (user submits text)
+// POST: handle input
 export async function POST(req: Request) {
   const body = await req.json();
   const input = body?.untrustedData?.inputText || "";
@@ -34,7 +33,6 @@ export async function POST(req: Request) {
   return json({
     version: "vNext",
     image: `https://igoreha.online/api/og?state=result&name=${name}`,
-    text: `Checking: ${name}`,
     buttons: [
       {
         label: "Open in Radar",
