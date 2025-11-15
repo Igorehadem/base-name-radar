@@ -100,9 +100,11 @@ const styles: Record<string, any> = {
     border: "1px solid #333",
   },
   name: {
-    fontSize: "28px",
-    fontWeight: "600",
-    marginBottom: "10px",
+    fontSize: "30px",
+    fontWeight: "700",
+    marginBottom: "6px",
+    letterSpacing: "0.4px",
+    color: "#fff",
   },
   meta: {
     fontSize: "14px",
@@ -110,7 +112,9 @@ const styles: Record<string, any> = {
     marginBottom: "12px",
   },
   link: {
-    fontSize: "16px",
+    fontSize: "15px",
+    marginTop: "6px",
+    display: "inline-block",
     color: "#3b82f6",
     textDecoration: "none",
     fontWeight: "500",
