@@ -1,12 +1,14 @@
 "use client";
-import { default as useSWR } from "swr";
+import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function RecentPage() {
-  const { data, isLoading } = useSWR("/api/radar", fetcher, {
-    refreshInterval: 15000, // auto-refresh every 15 seconds
+  const { data, error, isValidating } = useSWR("/api/radar", fetcher, {
+    refreshInterval: 15000,
   });
+
+  const isLoading = !data && !error;
 
   return (
     <div style={styles.container}>
@@ -27,10 +29,7 @@ export default function RecentPage() {
               Freed: {new Date(item.timestamp).toLocaleString()}
             </div>
 
-            <a
-              href={`/check?name=${item.name}`}
-              style={styles.link}
-            >
+            <a href={`/check?name=${item.name}`} style={styles.link}>
               Check this name →
             </a>
           </div>
