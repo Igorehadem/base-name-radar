@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { frameResponse } from "@/frame/helpers/response";
+import { frameResponse } from "../../../frame/helpers/response";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
