@@ -150,6 +150,19 @@ This project is fully verifiable on GitHub:
 - optional reproducible Farcaster posts
 
 ---
+Near-term roadmap
+
+- [ ] Improve scanner accuracy (detect all active Warpcast names)
+- [ ] Add automatic hourly scanner (Vercel Cron)
+- [ ] Recent frees UI + auto-refresh
+- [ ] Add Base Names leaderboards (3-letter, OG names, dictionary words)
+- [ ] Telegram bot for instant free-name alerts
+- [ ] “Soon expiring” name watchlist
+- [ ] Farcaster Frame: show last 5 freed names
+- [ ] Marketplace module for dropping names
+
+
+---
 
 ## 🗺 Roadmap
 
