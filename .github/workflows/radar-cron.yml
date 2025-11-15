@@ -1,16 +1,16 @@
-name: Radar Scanner
+name: Base Name Radar Scan
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # every 30 minutes
-  workflow_dispatch:
+    - cron: "*/20 * * * *"   
+  workflow_dispatch:         
 
 jobs:
   scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -18,14 +18,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm install
 
       - name: Run scanner
         run: npm run scan
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: radar.json updated automatically"
-          file_pattern: data/radar.json
