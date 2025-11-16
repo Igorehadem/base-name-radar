@@ -104,24 +104,34 @@ export default function Home() {
         placeholder="yourname.base"
         value={name}
         onChange={(e) => {
-          // normalize input
-          let v = e.target.value.toLowerCase().trim();
+          let input = e.target;
+          let v = input.value.toLowerCase();
 
-          // remove illegal characters
-          v = v.replace(/[^a-z0-9-.]/g, "");
-
-          // auto-append ".base"
-          if (v && !v.includes(".")) {
-            v = v + ".base";
+          // 1. remove everything after the FIRST ".base"
+          const baseIndex = v.indexOf(".base");
+          if (baseIndex !== -1) {
+            v = v.slice(0, baseIndex);
           }
 
-          // prevent "." + "base" only
-          if (v === ".base") v = "";
+          // 2. remove all invalid chars from the label
+          const label = v.replace(/[^a-z0-9-]/g, "");
 
-          setName(v);
-          setError(null);
+          // 3. final value is ALWAYS label + ".base"
+          const finalValue = label + ".base";
+
+          setName(finalValue);
           setResult(null);
+          setError(null);
+
+          // 4. force cursor to stay before ".base"
+          const cursorPos = label.length; // just after the label
+
+          setTimeout(() => {
+            input.setSelectionRange(cursorPos, cursorPos);
+          }, 0);
         }}
+
+
         style={{
           width: "100%",
           padding: "10px",
