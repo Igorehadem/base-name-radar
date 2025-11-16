@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { publicClient } from "@/lib/viem";
-import { BASE_REGISTRAR } from "@/lib/base-names";
+import { publicClient } from "../../../lib/viem";
+import { BASE_REGISTRAR } from "../../../lib/base-names";
 import { keccak256, toHex, stringToBytes } from "viem";
 
 export async function POST(req: Request) {
