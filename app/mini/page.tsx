@@ -44,7 +44,31 @@ export default function MiniApp() {
       />
 
       <button
-        onClick={() => setResult(`Checking "${name}"...`)}
+        onClick={async () => {
+          if (!name.trim()) {
+            setResult("Enter a name.");
+            return;
+          }
+        
+          setResult("Checking...");
+          try {
+            const res = await fetch(`/api/name/${name}`);
+            if (!res.ok) {
+              setResult("Error checking name.");
+              return;
+            }
+        
+            const data = await res.json();
+        
+            if (data.available) {
+              setResult(`"${name}" is AVAILABLE 🎉`);
+            } else {
+              setResult(`"${name}" is TAKEN ❌`);
+            }
+          } catch (err) {
+            setResult("Network error.");
+          }
+        }}
         style={{
           marginTop: 16,
           padding: "12px 16px",
