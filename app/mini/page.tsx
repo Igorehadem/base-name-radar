@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { sdk } from "@farcaster/mini-apps";
 
 export default function MiniApp() {
+  const [name, setName] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+
   useEffect(() => {
-    // сообщаем Warpcast, что приложение загружено
     sdk.actions.ready();
   }, []);
 
@@ -16,16 +18,50 @@ export default function MiniApp() {
         color: "white",
         minHeight: "100vh",
         padding: "32px",
-        fontFamily: "sans-serif"
+        fontFamily: "sans-serif",
       }}
     >
-      <h1 style={{ fontSize: "32px", marginBottom: "16px" }}>
-        Base Name Radar
-      </h1>
+      <h1 style={{ fontSize: 32, marginBottom: 16 }}>Base Name Radar</h1>
 
-      <p style={{ fontSize: "20px", opacity: 0.7 }}>
-        Mini App is running. UI will be added next.
+      <p style={{ fontSize: 18, opacity: 0.7 }}>
+        Check if a Base name is available.
       </p>
+
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="enter name"
+        style={{
+          marginTop: 24,
+          padding: "12px 16px",
+          fontSize: 18,
+          borderRadius: 12,
+          width: "100%",
+          border: "1px solid #333",
+          background: "#1a1a1a",
+          color: "white",
+        }}
+      />
+
+      <button
+        onClick={() => setResult(`Checking "${name}"...`)}
+        style={{
+          marginTop: 16,
+          padding: "12px 16px",
+          fontSize: 18,
+          borderRadius: 12,
+          width: "100%",
+          background: "#3b82f6",
+          color: "white",
+          border: "none",
+        }}
+      >
+        Check
+      </button>
+
+      {result && (
+        <p style={{ marginTop: 24, fontSize: 18, opacity: 0.9 }}>{result}</p>
+      )}
     </main>
   );
 }
