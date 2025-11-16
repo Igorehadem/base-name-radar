@@ -6,6 +6,7 @@ import { sdk } from "@farcaster/mini-apps";
 export default function MiniApp() {
   const [name, setName] = useState("");
   const [result, setResult] = useState<string | null>(null);
+  const [details, setDetails] = useState<any | null>(null);
 
   useEffect(() => {
     sdk.actions.ready();
@@ -65,6 +66,7 @@ export default function MiniApp() {
             } else {
               setResult(`"${name}" is TAKEN ❌`);
             }
+            setDetails(data);
           } catch (err) {
             setResult("Network error.");
           }
@@ -85,6 +87,40 @@ export default function MiniApp() {
 
       {result && (
         <p style={{ marginTop: 24, fontSize: 18, opacity: 0.9 }}>{result}</p>
+      )}
+      {details && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 12,
+            background: "#1a1a1a",
+            border: "1px solid #333",
+            fontSize: 16
+          }}
+        >
+          {!details.available && details.owner && (
+            <>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Owner:</strong> {details.owner}
+              </div>
+              {details.expires && (
+                <div style={{ marginBottom: 8 }}>
+                  <strong>Expires:</strong> {new Date(details.expires).toLocaleString()}
+                </div>
+              )}
+              {details.txLink && (
+                <a
+                  href={details.txLink}
+                  target="_blank"
+                  style={{ color: "#3b82f6" }}
+                >
+                  View on Block Explorer →
+                </a>
+              )}
+            </>
+          )}
+        </div>
       )}
     </main>
   );
