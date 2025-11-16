@@ -7,6 +7,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dots, setDots] = useState(".");
 
   async function checkName() {
     setLoading(true);
@@ -34,6 +35,19 @@ export default function Home() {
 
     setLoading(false);
   }
+  // simple loading animation
+  useEffect(() => {
+    if (!loading) {
+      setDots(".");
+      return;
+    }
+  
+    const i = setInterval(() => {
+      setDots(prev => (prev.length >= 3 ? "." : prev + "."));
+    }, 300);
+  
+    return () => clearInterval(i);
+  }, [loading]);
 
   return (
     <div style={{
@@ -60,8 +74,9 @@ export default function Home() {
         
           // если человек начинает стирать — не мешаем
           if (v === ".base") v = "";
-        
           setName(v);
+          setResult(null);
+          setError(null);
         }}
         style={{
           width: "100%",
@@ -70,6 +85,12 @@ export default function Home() {
           marginBottom: "10px"
         }}
       />
+
+      {!loading && name && !result && !error && (
+        <div style={{ marginBottom: "10px", color: "#888" }}>
+          Press “Check” to verify <b>{name}</b>
+        </div>
+      )}
 
       <button
         onClick={checkName}
@@ -81,7 +102,7 @@ export default function Home() {
           cursor: "pointer"
         }}
       >
-        {loading ? "Checking..." : "Check"}
+        {loading ? `Checking${dots}` : "Check"}
       </button>
 
       {error && (
