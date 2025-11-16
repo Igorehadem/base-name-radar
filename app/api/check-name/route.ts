@@ -113,6 +113,16 @@ export async function POST(req: Request) {
       status = "registered";
     }
 
+        // human friendly message
+    let hint = "";
+    if (status === "available") {
+      hint = "Имя свободно — можно регистрировать.";
+    } else if (status === "expired") {
+      hint = "Имя раньше было зарегистрировано, но срок истёк — можно снова занять.";
+    } else if (status === "registered") {
+      hint = "Имя уже занято и действует.";
+    }
+
     return NextResponse.json({
       name,
       label,
@@ -120,7 +130,8 @@ export async function POST(req: Request) {
       status,
       available: status === "available" || status === "expired",
       owner,
-      expires: expires ? Number(expires) : null
+      expires: expires ? Number(expires) : null,
+      hint
     });
 
   } catch (err) {
