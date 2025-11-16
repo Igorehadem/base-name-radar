@@ -45,9 +45,24 @@ export default function Home() {
       <h1>Base Name Checker</h1>
 
       <input
-        placeholder="example.base"
+        placeholder="yourname.base"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          let v = e.target.value.toLowerCase().trim();
+        
+          // запрет пробелов и недопустимых символов
+          v = v.replace(/[^a-z0-9-.]/g, "");
+        
+          // авто-добавление .base при вводе имени без точки
+          if (v && !v.includes(".")) {
+            v = v + ".base";
+          }
+        
+          // если человек начинает стирать — не мешаем
+          if (v === ".base") v = "";
+        
+          setName(v);
+        }}
         style={{
           width: "100%",
           padding: "10px",
