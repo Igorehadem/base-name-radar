@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   global.__CHECK_NAME_RATE__.set(ip, nowMs);
 
   try {
-    const { name } = await req.json();
+    const { name, format } = await req.json();
 
     if (!name || typeof name !== "string") {
       return NextResponse.json(
@@ -123,6 +123,17 @@ export async function POST(req: Request) {
       hint = "Имя уже занято и действует.";
     }
 
+        // mini format for Farcaster / Base Mini App
+    if (format === "mini") {
+      return NextResponse.json({
+        name,
+        status,
+        available: status === "available" || status === "expired",
+        hint
+      });
+    }
+
+    // full format (default)
     return NextResponse.json({
       name,
       label,
