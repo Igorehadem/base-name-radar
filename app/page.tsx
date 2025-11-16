@@ -10,6 +10,7 @@ export default function Home() {
   const [dots, setDots] = useState(".");
 
   async function checkName() {
+    if (!name) return;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -48,7 +49,22 @@ export default function Home() {
   
     return () => clearInterval(i);
   }, [loading]);
-
+  // auto-check with debounce
+  useEffect(() => {
+    if (!name) return; // п
+  
+    // 
+    setResult(null);
+    setError(null);
+  
+    const timer = setTimeout(() => {
+      // 
+      checkName();
+    }, 600);
+  
+    return () => clearTimeout(timer);
+  }, [name]);
+  
   return (
     <div style={{
       maxWidth: 480,
@@ -64,15 +80,15 @@ export default function Home() {
         onChange={(e) => {
           let v = e.target.value.toLowerCase().trim();
         
-          // запрет пробелов и недопустимых символов
+          // 
           v = v.replace(/[^a-z0-9-.]/g, "");
         
-          // авто-добавление .base при вводе имени без точки
+          // 
           if (v && !v.includes(".")) {
             v = v + ".base";
           }
         
-          // если человек начинает стирать — не мешаем
+          // 
           if (v === ".base") v = "";
           setName(v);
           setResult(null);
@@ -88,7 +104,7 @@ export default function Home() {
 
       {!loading && name && !result && !error && (
         <div style={{ marginBottom: "10px", color: "#888" }}>
-          Press “Check” to verify <b>{name}</b>
+          Checking will start automatically…
         </div>
       )}
 
