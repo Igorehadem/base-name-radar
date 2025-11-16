@@ -15,10 +15,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1) выделяем чистый label (до точки)
+    // 1)
     const label = name.replace(".base", "").trim().toLowerCase();
 
-    // 2) считаем tokenId по ENS-алгоритму (keccak256(label))
+    // 2)(keccak256(label))
     const tokenId = BigInt(
       keccak256(toHex(stringToBytes(label)))
     );
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         args: [tokenId]
       });
     } catch {
-      // ownerOf кидает ошибку, если токен не существует → имя свободно
+      // ownerO
       owner = null;
     }
 
@@ -50,13 +50,28 @@ export async function POST(req: Request) {
       expires = null;
     }
 
-    const available = owner === null;
+        // --- status logic ---
+    const now = Math.floor(Date.now() / 1000);
+
+    let status: "available" | "registered" | "expired";
+
+    if (owner === null) {
+      // токен никогда не существовал → имя свободно
+      status = "available";
+    } else if (expires && Number(expires) < now) {
+      // токен был, но просрочен → можно регать
+      status = "expired";
+    } else {
+      // активная регистрация
+      status = "registered";
+    }
 
     return NextResponse.json({
       name,
       label,
       tokenId: tokenId.toString(),
-      available,
+      status,
+      available: status === "available" || status === "expired",
       owner,
       expires: expires ? Number(expires) : null
     });
