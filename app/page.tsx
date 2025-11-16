@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function Home() {
   const [name, setName] = useState("");
@@ -9,11 +9,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [dots, setDots] = useState(".");
 
-  async function checkName() {
+  /**
+   * Performs name check via API
+   */
+  const checkName = useCallback(async () => {
     if (!name) return;
+
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
       const res = await fetch("/api/check-name", {
@@ -26,57 +29,74 @@ export default function Home() {
 
       if (!res.ok) {
         setError(data.error || "Unknown error");
+        setResult(null);
       } else {
         setResult(data);
       }
-
-    } catch (e) {
+    } catch {
       setError("Network error");
+      setResult(null);
     }
 
     setLoading(false);
-  }
-  // simple loading animation
+  }, [name]);
+
+  /**
+   * Loading dots animation
+   */
   useEffect(() => {
     if (!loading) {
       setDots(".");
       return;
     }
-  
-    const i = setInterval(() => {
+
+    const id = setInterval(() => {
       setDots(prev => (prev.length >= 3 ? "." : prev + "."));
     }, 300);
-  
-    return () => clearInterval(i);
+
+    return () => clearInterval(id);
   }, [loading]);
-  // auto-check with debounce
+
+  /**
+   * Auto-check name with debounce (600ms)
+   */
   useEffect(() => {
-    if (!name) return; // п
-  
-    // 
-    setResult(null);
-    setError(null);
-  
+    if (!name) {
+      setResult(null);
+      setError(null);
+      return;
+    }
+
     const timer = setTimeout(() => {
-      // 
       checkName();
     }, 600);
-  
+
     return () => clearTimeout(timer);
-  }, [name]);
-  
+  }, [name, checkName]);
+
+  /**
+   * Styles
+   */
+  const wrapperStyle = {
+    maxWidth: 480,
+    margin: "40px auto",
+    padding: "20px",
+    fontFamily: "sans-serif",
+  };
+
   return (
-    <div style={{
-      maxWidth: 480,
-      margin: "40px auto",
-      padding: "20px",
-      fontFamily: "sans-serif"
-    }}>
+    <div style={wrapperStyle}>
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <span style={{ fontSize: "40px" }}>🔍</span>
       </div>
 
-      <h1 style={{ fontSize: "22px", textAlign: "center", marginBottom: "20px" }}>
+      <h1
+        style={{
+          fontSize: "22px",
+          textAlign: "center",
+          marginBottom: "20px",
+        }}
+      >
         Base Name Checker
       </h1>
 
@@ -84,27 +104,29 @@ export default function Home() {
         placeholder="yourname.base"
         value={name}
         onChange={(e) => {
+          // normalize input
           let v = e.target.value.toLowerCase().trim();
-        
-          // 
+
+          // remove illegal characters
           v = v.replace(/[^a-z0-9-.]/g, "");
-        
-          // 
+
+          // auto-append ".base"
           if (v && !v.includes(".")) {
             v = v + ".base";
           }
-        
-          // 
+
+          // prevent "." + "base" only
           if (v === ".base") v = "";
+
           setName(v);
-          setResult(null);
           setError(null);
+          setResult(null);
         }}
         style={{
           width: "100%",
           padding: "10px",
           fontSize: "16px",
-          marginBottom: "10px"
+          marginBottom: "10px",
         }}
       />
 
@@ -127,17 +149,14 @@ export default function Home() {
           background: loading ? "#444" : "#1cbf4a",
           color: "#fff",
           fontWeight: "bold",
-          marginTop: "10px"
+          marginTop: "10px",
         }}
       >
-
         {loading ? `Checking${dots}` : "Check"}
       </button>
 
       {error && (
-        <div style={{ marginTop: "20px", color: "red" }}>
-          ❌ {error}
-        </div>
+        <div style={{ marginTop: "20px", color: "red" }}>❌ {error}</div>
       )}
 
       {result && (
@@ -171,11 +190,11 @@ export default function Home() {
           >
             {result.status.toUpperCase()}
           </div>
-      
+
           <div style={{ marginBottom: "10px", opacity: 0.9 }}>
             {result.hint}
           </div>
-      
+
           <div style={{ fontSize: "13px", opacity: 0.6 }}>
             {result.available
               ? "This name can be registered."
