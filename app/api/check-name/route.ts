@@ -14,6 +14,33 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+        // --- normalize ---
+    let raw = name.trim().toLowerCase().replace(".base", "");
+
+    // --- validation ---
+    const valid = /^[a-z0-9-]+$/.test(raw);
+
+    if (!valid) {
+      return NextResponse.json(
+        { 
+          error: "Only a-z, 0-9 and '-' are allowed",
+          code: "INVALID_NAME_FORMAT"
+        },
+        { status: 400 }
+      );
+    }
+
+    if (raw.length < 3) {
+      return NextResponse.json(
+        { 
+          error: "Base names must be at least 3 characters",
+          code: "NAME_TOO_SHORT"
+        },
+        { status: 400 }
+      );
+    }
+
+    const label = raw;
 
     // 1)
     const label = name.replace(".base", "").trim().toLowerCase();
