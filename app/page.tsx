@@ -72,7 +72,13 @@ export default function Home() {
       padding: "20px",
       fontFamily: "sans-serif"
     }}>
-      <h1>Base Name Checker</h1>
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <span style={{ fontSize: "40px" }}>🔍</span>
+      </div>
+
+      <h1 style={{ fontSize: "22px", textAlign: "center", marginBottom: "20px" }}>
+        Base Name Checker
+      </h1>
 
       <input
         placeholder="yourname.base"
@@ -113,11 +119,18 @@ export default function Home() {
         disabled={loading}
         style={{
           width: "100%",
-          padding: "10px",
+          padding: "12px",
           fontSize: "16px",
-          cursor: "pointer"
+          cursor: "pointer",
+          borderRadius: "12px",
+          border: "none",
+          background: loading ? "#444" : "#1cbf4a",
+          color: "#fff",
+          fontWeight: "bold",
+          marginTop: "10px"
         }}
       >
+
         {loading ? `Checking${dots}` : "Check"}
       </button>
 
@@ -128,10 +141,46 @@ export default function Home() {
       )}
 
       {result && (
-        <div style={{ marginTop: "20px" }}>
-          <div><b>Status:</b> {result.status}</div>
-          <div><b>Available:</b> {String(result.available)}</div>
-          <div style={{ marginTop: "10px" }}>{result.hint}</div>
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "16px",
+            borderRadius: "12px",
+            background: "#111",
+            color: "#fff",
+            border:
+              result.status === "available"
+                ? "1px solid #1cbf4a"
+                : result.status === "expired"
+                ? "1px solid #ffb94f"
+                : "1px solid #e74c3c",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "18px",
+              fontWeight: "bold",
+              marginBottom: "6px",
+              color:
+                result.status === "available"
+                  ? "#1cbf4a"
+                  : result.status === "expired"
+                  ? "#ffb94f"
+                  : "#e74c3c",
+            }}
+          >
+            {result.status.toUpperCase()}
+          </div>
+      
+          <div style={{ marginBottom: "10px", opacity: 0.9 }}>
+            {result.hint}
+          </div>
+      
+          <div style={{ fontSize: "13px", opacity: 0.6 }}>
+            {result.available
+              ? "This name can be registered."
+              : "This name is not available."}
+          </div>
         </div>
       )}
     </div>
