@@ -5,6 +5,26 @@ import { BASE_REGISTRAR, namehashTools } from "@/lib/base-names";
 import { keccak256, toHex, stringToBytes } from "viem";
 
 export async function POST(req: Request) {
+    // --- simple rate limit (in-memory) ---
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+
+  // global throttle store
+  // @ts-ignore
+  global.__CHECK_NAME_RATE__ = global.__CHECK_NAME_RATE__ || new Map();
+
+  const nowMs = Date.now();
+  const last = global.__CHECK_NAME_RATE__.get(ip) || 0;
+
+  // 700 ms min interval
+  if (nowMs - last < 700) {
+    return NextResponse.json(
+      { error: "Too many requests", code: "RATE_LIMIT" },
+      { status: 429 }
+    );
+  }
+
+  global.__CHECK_NAME_RATE__.set(ip, nowMs);
+
   try {
     const { name } = await req.json();
 
