@@ -1,46 +1,65 @@
-// No edge runtime — use Node.js so Warpcast accepts Content-Length
-
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
+/**
+ * GET — показываем стартовый экран фрейма
+ */
 export async function GET() {
-  const payload = {
+  return NextResponse.json({
     version: "vNext",
     image: "https://igoreha.online/api/og?state=start",
-    inputText: "yourname",
     buttons: [
-      { label: "Check name", action: "post" }
-    ]
-  };
-
-  return NextResponse.json(payload, {
-    headers: {
-      "Cache-Control": "no-store"
-    }
+      {
+        label: "Check name",
+        action: "post",
+      },
+    ],
+    inputText: "yourname",
   });
 }
 
+/**
+ * POST — обрабатываем ввод имени
+ */
 export async function POST(req: Request) {
-  const body = await req.json();
-  const name = (body?.untrustedData?.inputText || "").trim().toLowerCase();
+  const body = await req.json().catch(() => ({}));
+  const name = body?.untrustedData?.inputText?.trim().toLowerCase();
 
-  const payload = {
+  if (!name) {
+    return NextResponse.json({
+      version: "vNext",
+      image: "https://igoreha.online/api/og?state=error",
+      text: "Please enter a valid name",
+      buttons: [
+        {
+          label: "Try again",
+          action: "post",
+        },
+      ],
+      inputText: "yourname",
+    });
+  }
+
+  // Формируем кнопку "Open in Warpcast"
+  const warpcastUrl = `https://warpcast.com/~/n/${name}`;
+
+  return NextResponse.json({
     version: "vNext",
-    image: `https://igoreha.online/api/og?state=result&name=${name}`,
+    image: `https://igoreha.online/api/og?name=${name}`,
+    text: `Checking: ${name}`,
     buttons: [
       {
-        label: "Open in Radar",
+        label: "Open in Warpcast",
         action: "link",
-        target: `https://igoreha.online/check?name=${name}`
+        target: warpcastUrl,
       },
-      { label: "Check another", action: "post" }
-    ]
-  };
-
-  return NextResponse.json(payload, {
-    headers: {
-      "Cache-Control": "no-store"
-    }
+      {
+        label: "Try another",
+        action: "post",
+      },
+    ],
+    inputText: "yourname",
   });
 }
