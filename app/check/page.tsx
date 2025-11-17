@@ -3,140 +3,386 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 
+type EnsResult = {
+  service: "ensideas";
+  domain: string;
+  available: boolean;
+  address?: string;
+  displayName?: string;
+  avatar?: string | null;
+  error?: string;
+};
+
+type FnameResult = {
+  service: "farcaster-fnames";
+  name: string;
+  available: boolean;
+  currentOwnerFid?: number;
+  ownerAddress?: string;
+  lastTransferTimestamp?: number;
+  error?: string;
+};
+
+type ApiResult = {
+  name: string;
+  ens: EnsResult;
+  fname: FnameResult;
+  error?: string;
+};
+
 export default function CheckPage() {
   const [name, setName] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ApiResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function checkName() {
-    if (!name) return;
+    const trimmed = name.trim().toLowerCase();
+    if (!trimmed) return;
+
     setLoading(true);
     setResult(null);
+    setError(null);
 
-    const res = await fetch(`/api/name/${name}`);
-    const json = await res.json();
-    setResult(json);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/name/${encodeURIComponent(trimmed)}`);
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const msg =
+          (json && (json.error || json.message)) ||
+          `Request failed with status ${res.status}`;
+        setError(msg);
+        return;
+      }
+
+      const json = (await res.json()) as ApiResult;
+      setResult(json);
+    } catch (e: any) {
+      setError(e?.message || "Network error");
+    } finally {
+      setLoading(false);
+    }
   }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      checkName();
+    }
+  }
+
+  const hasResult = !!result;
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Check Base Name</h1>
+      <h1 style={styles.title}>ENS + FNames Name Checker</h1>
 
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter a name"
-        style={styles.input}
-      />
+      <p style={styles.subtitle}>
+        Введи базовое имя (без суффиксов) — мы проверим{" "}
+        <strong>name.eth</strong> в ENS и <strong>fname</strong> в Farcaster.
+      </p>
 
-      <button onClick={checkName} style={styles.button}>
-        {loading ? "Checking..." : "Check"}
-      </button>
+      <div style={styles.form}>
+        <input
+          style={styles.input}
+          placeholder="например, igoreha"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button style={styles.button} onClick={checkName} disabled={loading}>
+          {loading ? "Checking..." : "Check name"}
+        </button>
+      </div>
 
-      {result && (
-        <div style={styles.card}>
-          {result.available ? (
-            <div style={styles.free}>AVAILABLE 🎉</div>
-          ) : (
-            <div style={styles.taken}>TAKEN 🔒</div>
-          )}
+      {error && (
+        <div style={styles.errorBox}>
+          <div style={styles.errorTitle}>Error</div>
+          <div>{error}</div>
+        </div>
+      )}
 
-          <div style={styles.resultName}>{result.name}</div>
+      {hasResult && !error && (
+        <div style={styles.resultsWrapper}>
+          <div style={styles.resultsHeader}>
+            <span style={styles.resultsLabel}>Name:</span>
+            <span style={styles.resultsValue}>{result?.name}</span>
+          </div>
 
-          {!result.available && (
-            <>
-              <img
-                src={result.pfp}
-                alt="pfp"
-                style={styles.avatar}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-
-              <a
-                href={`https://warpcast.com/${result.username}`}
-                target="_blank"
-                style={styles.link}
-              >
-                Open in Warpcast →
-              </a>
-            </>
-          )}
+          <div style={styles.cardsGrid}>
+            <EnsCard ens={result!.ens} />
+            <FnameCard fname={result!.fname} />
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-const styles: Record<string, any> = {
+function EnsCard({ ens }: { ens: EnsResult }) {
+  const statusColor = ens.error
+    ? "#4b5563"
+    : ens.available
+    ? "#16a34a"
+    : "#dc2626";
+
+  const statusLabel = ens.error
+    ? "Error"
+    : ens.available
+    ? "Available"
+    : "Taken";
+
+  return (
+    <div style={{ ...styles.card, borderColor: statusColor }}>
+      <div style={styles.cardHeader}>
+        <span style={styles.cardTitle}>ENS (.eth)</span>
+        <span style={{ ...styles.badge, backgroundColor: statusColor }}>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div style={styles.cardBody}>
+        <div style={styles.cardMainLine}>{ens.domain}</div>
+
+        {ens.error && (
+          <div style={styles.cardErrorText}>
+            ENS error: {ens.error}
+          </div>
+        )}
+
+        {!ens.error && ens.available && (
+          <div style={styles.cardInfoText}>
+            This ENS name appears to be <strong>available</strong>.
+          </div>
+        )}
+
+        {!ens.error && !ens.available && (
+          <>
+            {ens.avatar && (
+              <img
+                src={ens.avatar}
+                alt={ens.displayName || ens.domain}
+                style={styles.avatar}
+              />
+            )}
+            <div style={styles.cardInfoText}>
+              Owner address:
+              <br />
+              <code style={styles.code}>{ens.address}</code>
+            </div>
+            {ens.displayName && (
+              <div style={styles.cardInfoText}>
+                Display name: <strong>{ens.displayName}</strong>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FnameCard({ fname }: { fname: FnameResult }) {
+  const statusColor = fname.error
+    ? "#4b5563"
+    : fname.available
+    ? "#16a34a"
+    : "#dc2626";
+
+  const statusLabel = fname.error
+    ? "Error"
+    : fname.available
+    ? "Available"
+    : "Taken";
+
+  return (
+    <div style={{ ...styles.card, borderColor: statusColor }}>
+      <div style={styles.cardHeader}>
+        <span style={styles.cardTitle}>Farcaster FName</span>
+        <span style={{ ...styles.badge, backgroundColor: statusColor }}>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div style={styles.cardBody}>
+        <div style={styles.cardMainLine}>@{fname.name}</div>
+
+        {fname.error && (
+          <div style={styles.cardErrorText}>
+            FName error: {fname.error}
+          </div>
+        )}
+
+        {!fname.error && fname.available && (
+          <div style={styles.cardInfoText}>
+            This FName appears to be <strong>available</strong>.
+          </div>
+        )}
+
+        {!fname.error && !fname.available && (
+          <>
+            {typeof fname.currentOwnerFid === "number" && (
+              <div style={styles.cardInfoText}>
+                Current owner FID:{" "}
+                <strong>{fname.currentOwnerFid}</strong>
+              </div>
+            )}
+            {fname.ownerAddress && (
+              <div style={styles.cardInfoText}>
+                Custody address:
+                <br />
+                <code style={styles.code}>{fname.ownerAddress}</code>
+              </div>
+            )}
+            {fname.lastTransferTimestamp && (
+              <div style={styles.cardMetaText}>
+                Last transfer (unix): {fname.lastTransferTimestamp}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: "40px",
-    maxWidth: "500px",
+    padding: "40px 20px",
+    maxWidth: 800,
     margin: "0 auto",
-    textAlign: "center",
+    textAlign: "left",
   },
   title: {
-    fontSize: "36px",
-    fontWeight: "600",
-    marginBottom: "30px",
+    fontSize: 36,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.8,
+    marginBottom: 24,
+    lineHeight: 1.5,
+  },
+  form: {
+    display: "flex",
+    gap: 12,
+    marginBottom: 24,
   },
   input: {
-    width: "100%",
-    padding: "12px",
-    fontSize: "18px",
-    background: "#222",
-    border: "1px solid #444",
-    borderRadius: "8px",
-    color: "#eee",
-    marginBottom: "15px",
+    flex: 1,
+    padding: "10px 14px",
+    fontSize: 16,
+    borderRadius: 999,
+    border: "1px solid #4b5563",
+    outline: "none",
+    background: "#020617",
+    color: "#f9fafb",
   },
   button: {
-    width: "100%",
-    padding: "12px",
-    fontSize: "18px",
-    background: "#3b82f6",
+    padding: "10px 18px",
+    fontSize: 16,
+    borderRadius: 999,
     border: "none",
-    borderRadius: "8px",
     cursor: "pointer",
-    marginBottom: "20px",
-    color: "white",
+    background: "#3b82f6",
+    color: "#f9fafb",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+  errorBox: {
+    marginTop: 16,
+    padding: "12px 14px",
+    borderRadius: 8,
+    background: "#450a0a",
+    border: "1px solid #b91c1c",
+    color: "#fecaca",
+    fontSize: 14,
+  },
+  errorTitle: {
+    fontWeight: 600,
+    marginBottom: 4,
+  },
+  resultsWrapper: {
+    marginTop: 24,
+  },
+  resultsHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+  },
+  resultsLabel: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  resultsValue: {
+    fontSize: 18,
+    fontWeight: 600,
+  },
+  cardsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260, 1fr))",
+    gap: 16,
   },
   card: {
-    background: "#1a1a1a",
-    padding: "20px",
-    borderRadius: "12px",
-    textAlign: "center",
+    borderRadius: 16,
+    border: "1px solid #374151",
+    padding: 16,
+    background: "#020617",
   },
-  free: {
-    fontSize: "20px",
-    color: "#22c55e",
-    marginBottom: "10px",
+  cardHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
-  taken: {
-    fontSize: "20px",
-    color: "#ef4444",
-    marginBottom: "10px",
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 600,
   },
-  resultName: {
-    fontSize: "26px",
-    fontWeight: "600",
-    marginBottom: "10px",
+  badge: {
+    fontSize: 12,
+    padding: "4px 10px",
+    borderRadius: 999,
+    color: "#f9fafb",
+    fontWeight: 600,
+  },
+  cardBody: {
+    fontSize: 14,
+  },
+  cardMainLine: {
+    fontSize: 18,
+    fontWeight: 600,
+    marginBottom: 8,
+  },
+  cardInfoText: {
+    marginTop: 6,
+    lineHeight: 1.5,
+  },
+  cardMetaText: {
+    marginTop: 6,
+    opacity: 0.7,
+    fontSize: 12,
+  },
+  cardErrorText: {
+    marginTop: 6,
+    color: "#fecaca",
   },
   avatar: {
-    width: "80px",
-    height: "80px",
+    width: 64,
+    height: 64,
     borderRadius: "50%",
-    margin: "10px auto",
     display: "block",
+    marginTop: 4,
+    marginBottom: 8,
   },
-  link: {
-    display: "inline-block",
-    marginTop: "10px",
-    color: "#3b82f6",
-    textDecoration: "none",
-    fontSize: "18px",
-    fontWeight: "500",
+  code: {
+    fontFamily: "monospace",
+    fontSize: 12,
+    padding: "2px 4px",
+    borderRadius: 4,
+    background: "#020617",
   },
 };
