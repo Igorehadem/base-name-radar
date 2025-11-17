@@ -2,10 +2,7 @@ import { ImageResponse } from "@vercel/og";
 
 export const runtime = "edge";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { name: string } }
-) {
+export async function GET(req, { params }) {
   const name = params.name.toLowerCase();
 
   const url = new URL(req.url);
@@ -14,23 +11,26 @@ export async function GET(
   });
   const data = await apiRes.json();
 
-  const ens = data.ens;
-  const fname = data.fname;
+  const ensStatus = data.ens?.error
+    ? "error"
+    : data.ens?.available
+    ? "free"
+    : "taken";
 
-  const ensStatus = ens.error ? "error" : ens.available ? "free" : "taken";
-  const fnameStatus = fname.error ? "error" : fname.available ? "free" : "taken";
-
-  const bg = "#0f172a";
-  const text = "#f8fafc";
+  const fnameStatus = data.fname?.error
+    ? "error"
+    : data.fname?.available
+    ? "free"
+    : "taken";
 
   return new ImageResponse(
     (
       <div
         style={{
-          fontSize: 42,
+          fontSize: 48,
           fontWeight: 700,
-          background: bg,
-          color: text,
+          background: "#0f172a",
+          color: "#f8fafc",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -39,15 +39,15 @@ export async function GET(
           padding: "60px",
         }}
       >
-        <div style={{ fontSize: 56, marginBottom: 20 }}>
+        <div style={{ fontSize: 72, marginBottom: 24 }}>
           {name}
         </div>
 
-        <div style={{ fontSize: 32, opacity: 0.9, marginBottom: 12 }}>
+        <div style={{ fontSize: 40, opacity: 0.9, marginBottom: 12 }}>
           ENS: {ensStatus}
         </div>
 
-        <div style={{ fontSize: 32, opacity: 0.9 }}>
+        <div style={{ fontSize: 40, opacity: 0.9 }}>
           FName: {fnameStatus}
         </div>
       </div>
