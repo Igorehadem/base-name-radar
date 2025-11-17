@@ -1,60 +1,58 @@
+/* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from "@vercel/og";
 
 export const runtime = "edge";
 
+// Принудительно указываем тип ответа
+export const contentType = "image/png";
+
 export async function GET(req, { params }) {
-  const name = params.name.toLowerCase();
+  try {
+    const name = params.name?.toLowerCase() || "unknown";
 
-  const url = new URL(req.url);
-  const apiRes = await fetch(`${url.origin}/api/name/${name}`, {
-    cache: "no-store",
-  });
-  const data = await apiRes.json();
+    const origin = new URL(req.url).origin;
+    const res = await fetch(`${origin}/api/name/${name}`, { cache: "no-store" });
+    const data = await res.json();
 
-  const ensStatus = data.ens?.error
-    ? "error"
-    : data.ens?.available
-    ? "free"
-    : "taken";
+    const ens = data.ens;
+    const fname = data.fname;
 
-  const fnameStatus = data.fname?.error
-    ? "error"
-    : data.fname?.available
-    ? "free"
-    : "taken";
+    const ensStatus = ens?.error ? "error" : ens?.available ? "free" : "taken";
+    const fnameStatus = fname?.error ? "error" : fname?.available ? "free" : "taken";
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          fontSize: 48,
-          fontWeight: 700,
-          background: "#0f172a",
-          color: "#f8fafc",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "60px",
-        }}
-      >
-        <div style={{ fontSize: 72, marginBottom: 24 }}>
-          {name}
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            background: "#0f172a",
+            color: "white",
+            padding: "60px",
+            fontFamily: "sans-serif",
+          }}
+        >
+          <div style={{ fontSize: 72, fontWeight: 700, marginBottom: 20 }}>
+            {name}
+          </div>
+
+          <div style={{ fontSize: 40, marginBottom: 10 }}>
+            ENS: {ensStatus}
+          </div>
+          <div style={{ fontSize: 40 }}>
+            FName: {fnameStatus}
+          </div>
         </div>
-
-        <div style={{ fontSize: 40, opacity: 0.9, marginBottom: 12 }}>
-          ENS: {ensStatus}
-        </div>
-
-        <div style={{ fontSize: 40, opacity: 0.9 }}>
-          FName: {fnameStatus}
-        </div>
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-    }
-  );
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
+  } catch (err) {
+    return new Response("Failed to generate OG Image", { status: 500 });
+  }
 }
