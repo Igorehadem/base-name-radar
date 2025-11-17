@@ -2,8 +2,12 @@ import { ImageResponse } from "@vercel/og";
 
 export const runtime = "edge";
 
-export async function GET(req: Request, ctx: { params: { name: string } }) {
-  const name = ctx.params.name?.toLowerCase() || "unknown";
+export async function GET(req, { params }) {
+  const fontData = await fetch(
+    new URL("/fonts/Inter-Regular.ttf", new URL(req.url).origin)
+  ).then((res) => res.arrayBuffer());
+
+  const name = params.name.toLowerCase();
 
   const origin = new URL(req.url).origin;
   const apiRes = await fetch(`${origin}/api/name/${name}`, { cache: "no-store" });
@@ -26,19 +30,17 @@ export async function GET(req: Request, ctx: { params: { name: string } }) {
           flexDirection: "column",
           justifyContent: "center",
           padding: "60px",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
           color: "white",
         }}
       >
-        <div style={{ fontSize: 72, fontWeight: 700, marginBottom: 24 }}>
-          {name}
-        </div>
+        <div style={{ fontSize: 72, marginBottom: 20 }}>{name}</div>
 
-        <div style={{ fontSize: 42, marginBottom: 12 }}>
+        <div style={{ fontSize: 40, marginBottom: 10 }}>
           ENS: {ensStatus}
         </div>
 
-        <div style={{ fontSize: 42 }}>
+        <div style={{ fontSize: 40 }}>
           FName: {fnameStatus}
         </div>
       </div>
@@ -46,6 +48,13 @@ export async function GET(req: Request, ctx: { params: { name: string } }) {
     {
       width: 1200,
       height: 630,
+      fonts: [
+        {
+          name: "Inter",
+          data: fontData,
+          style: "normal",
+        },
+      ],
     }
   );
 }
