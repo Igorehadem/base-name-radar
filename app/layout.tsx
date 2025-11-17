@@ -1,15 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Base Name Checker",
-  description: "Instant Base Name availability checker",
-  manifest: "/manifest.json",
-  icons: {
-    icon: "/icon.png"
-  },
-  themeColor: "#000000"
+export const metadata = {
+  title: "ENS + FNames Name Checker",
+  description: "Check ENS (.eth) and Farcaster FNames availability",
 };
+
 
 export default function RootLayout({
   children,
