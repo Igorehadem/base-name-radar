@@ -1,217 +1,28 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [dots, setDots] = useState(".");
-
-  /**
-   * Performs name check via API
-   */
-  const checkName = useCallback(async () => {
-    if (!name) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/check-name", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, format: "mini" })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Unknown error");
-        setResult(null);
-      } else {
-        setResult(data);
-      }
-    } catch {
-      setError("Network error");
-      setResult(null);
-    }
-
-    setLoading(false);
-  }, [name]);
-
-  /**
-   * Loading dots animation
-   */
-  useEffect(() => {
-    if (!loading) {
-      setDots(".");
-      return;
-    }
-
-    const id = setInterval(() => {
-      setDots(prev => (prev.length >= 3 ? "." : prev + "."));
-    }, 300);
-
-    return () => clearInterval(id);
-  }, [loading]);
-
-  /**
-   * Auto-check name with debounce (600ms)
-   */
-  useEffect(() => {
-    if (!name) {
-      setResult(null);
-      setError(null);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      checkName();
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [name, checkName]);
-
-  /**
-   * Styles
-   */
-  const wrapperStyle = {
-    maxWidth: 480,
-    margin: "40px auto",
-    padding: "20px",
-    fontFamily: "sans-serif",
-  };
-
   return (
-    <div style={wrapperStyle}>
-      <div style={{ textAlign: "center", marginBottom: "10px" }}>
-        <span style={{ fontSize: "40px" }}>🔍</span>
-      </div>
-
-      <h1
+    <div style={{ padding: 24, fontSize: 18 }}>
+      <h1>Unified ENS + FNames Name Checker</h1>
+      <p style={{ maxWidth: 480, lineHeight: 1.5 }}>
+        Проверяй сразу два мира: <strong>name.eth</strong> в ENS и{" "}
+        <strong>fname</strong> в Farcaster.
+      </p>
+      <Link
+        href="/check"
         style={{
-          fontSize: "22px",
-          textAlign: "center",
-          marginBottom: "20px",
+          display: "inline-block",
+          marginTop: 16,
+          padding: "10px 18px",
+          borderRadius: 999,
+          background: "#3b82f6",
+          color: "#f9fafb",
+          textDecoration: "none",
+          fontWeight: 600,
         }}
       >
-        Base Name Checker
-      </h1>
-
-      <input
-        placeholder="yourname.base"
-        value={name}
-        onChange={(e) => {
-          let input = e.target;
-          let v = input.value.toLowerCase();
-
-          // 1. remove everything after the FIRST ".base"
-          const baseIndex = v.indexOf(".base");
-          if (baseIndex !== -1) {
-            v = v.slice(0, baseIndex);
-          }
-
-          // 2. remove all invalid chars from the label
-          const label = v.replace(/[^a-z0-9-]/g, "");
-
-          // 3. final value is ALWAYS label + ".base"
-          const finalValue = label + ".base";
-
-          setName(finalValue);
-          setResult(null);
-          setError(null);
-
-          // 4. force cursor to stay before ".base"
-          const cursorPos = label.length; // just after the label
-
-          setTimeout(() => {
-            input.setSelectionRange(cursorPos, cursorPos);
-          }, 0);
-        }}
-
-
-        style={{
-          width: "100%",
-          padding: "10px",
-          fontSize: "16px",
-          marginBottom: "10px",
-        }}
-      />
-
-      {!loading && name && !result && !error && (
-        <div style={{ marginBottom: "10px", color: "#888" }}>
-          Checking will start automatically…
-        </div>
-      )}
-
-      <button
-        onClick={checkName}
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: "12px",
-          fontSize: "16px",
-          cursor: "pointer",
-          borderRadius: "12px",
-          border: "none",
-          background: loading ? "#444" : "#1cbf4a",
-          color: "#fff",
-          fontWeight: "bold",
-          marginTop: "10px",
-        }}
-      >
-        {loading ? `Checking${dots}` : "Check"}
-      </button>
-
-      {error && (
-        <div style={{ marginTop: "20px", color: "red" }}>❌ {error}</div>
-      )}
-
-      {result && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "16px",
-            borderRadius: "12px",
-            background: "#111",
-            color: "#fff",
-            border:
-              result.status === "available"
-                ? "1px solid #1cbf4a"
-                : result.status === "expired"
-                ? "1px solid #ffb94f"
-                : "1px solid #e74c3c",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "18px",
-              fontWeight: "bold",
-              marginBottom: "6px",
-              color:
-                result.status === "available"
-                  ? "#1cbf4a"
-                  : result.status === "expired"
-                  ? "#ffb94f"
-                  : "#e74c3c",
-            }}
-          >
-            {result.status.toUpperCase()}
-          </div>
-
-          <div style={{ marginBottom: "10px", opacity: 0.9 }}>
-            {result.hint}
-          </div>
-
-          <div style={{ fontSize: "13px", opacity: 0.6 }}>
-            {result.available
-              ? "This name can be registered."
-              : "This name is not available."}
-          </div>
-        </div>
-      )}
+        Open checker
+      </Link>
     </div>
   );
 }
