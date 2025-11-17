@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "ENS + FNames Name Checker",
+    "description": "Check ENS (.eth) and Farcaster FNames availability.",
+    "iconUrl": "https://base-name-radar.vercel.app/icon.png",
+    "homeUrl": "https://base-name-radar.vercel.app/check",
+    "canonicalDomain": "base-name-radar.vercel.app",
+    "requiredChains": ["eip155:8453"],
+    "tags": ["names", "ens", "farcaster", "base"]
+  }
+}
