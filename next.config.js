@@ -3,33 +3,21 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/mini',
+        source: "/(.*)",
         headers: [
           {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors https://warpcast.com https://*.warpcast.com;",
+            key: "X-Frame-Options",
+            value: "ALLOWALL"
           },
           {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
+            key: "Content-Security-Policy",
+            // разрешаем фрейминг со стороны фаркастера
+            value: "frame-ancestors https://*.farcaster.xyz https://*.warpcast.com *"
           }
-        ],
-      },
-      {
-        source: '/mini/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors https://warpcast.com https://*.warpcast.com;",
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
-          }
-        ],
+        ]
       }
     ];
-  },
+  }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
