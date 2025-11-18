@@ -2,212 +2,55 @@
 
 import { useEffect, useState } from "react";
 
+// --- Mini App safe SDK loader ---
+function loadSdkSafely() {
+  try {
+    return require("@farcaster/mini-apps-sdk").sdk;
+  } catch {
+    return null;
+  }
+}
+
 export default function MiniPage() {
-  const [ready, setReady] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
 
   useEffect(() => {
-    let _sdk = null;
-    try {
-      // SDK существует только внутри Warpcast Mini App
-      _sdk = require("@farcaster/mini-apps-sdk").sdk;
-    } catch (e) {
-      console.log("SDK cannot load (browser), this is normal");
-    }
+    const _sdk = loadSdkSafely();
 
     if (_sdk?.actions) {
       try {
         _sdk.actions.ready();
-        console.log("Mini App ready() sent");
-        setReady(true);
+        console.log("Mini App → ready()");
+        setSdkReady(true);
       } catch (e) {
-        console.log("sdk.ready() failed (safe)");
+        console.log("SDK ready() failed:", e);
       }
     } else {
-      console.log("SDK not available – browser mode");
+      console.log("Browser mode (no SDK)");
     }
   }, []);
 
-export default function MiniCheckPage() {
-  const [name, setName] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function runCheck() {
-    const n = name.trim().toLowerCase();
-    if (!n) return;
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const r = await fetch(`/api/name/${n}`);
-      const json = await r.json();
-      if (!r.ok) {
-        setError(json.error || "Unknown API error");
-      } else {
-        setResult(json);
-      }
-    } catch (e: any) {
-      setError(e?.message || "Network error");
-    }
-
-    setLoading(false);
-  }
-
-  function onKeyDown(e: any) {
-    if (e.key === "Enter") runCheck();
-  }
-
-  const ensStatus = result ? normalizeStatus(result.ens) : null;
-  const fnameStatus = result ? normalizeStatus(result.fname) : null;
-
   return (
-    <div style={styles.wrap}>
-      <h1 style={styles.h1}>Mini Name Checker</h1>
+    <div
+      style={{
+        padding: 24,
+        fontSize: 22,
+        background: "#000",
+        minHeight: "100vh",
+        color: "white",
+      }}
+    >
+      <h1>Base ENS + FName Checker</h1>
 
-      <input
-        style={styles.input}
-        placeholder="enter name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={onKeyDown}
-      />
-
-      <button style={styles.btn} onClick={runCheck} disabled={loading}>
-        {loading ? "Checking..." : "Check"}
-      </button>
-
-      {error && (
-        <div style={styles.errorBox}>
-          Error: {error}
-        </div>
+      {sdkReady ? (
+        <p>Warpcast Mini App initialized ✓</p>
+      ) : (
+        <p>Browser preview (SDK disabled)</p>
       )}
 
-      {result && !error && (
-        <div style={styles.card}>
-          <div style={styles.label}>Name:</div>
-          <div style={styles.value}>{result.name}</div>
-
-          <div style={{ marginTop: 20 }}>
-            <StatusLine
-              label="ENS"
-              status={ensStatus}
-              link={buildEnsLink(result)}
-            />
-
-            <StatusLine
-              label="FName"
-              status={fnameStatus}
-              link={buildFnameLink(result)}
-            />
-          </div>
-        </div>
-      )}
+      <p style={{ marginTop: 20 }}>
+        Open a frame with input to check names.
+      </p>
     </div>
   );
 }
-
-function StatusLine({ label, status, link }: any) {
-  const color =
-    status === "free"
-      ? "#16a34a"
-      : status === "taken"
-      ? "#dc2626"
-      : "#9ca3af";
-
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <span style={{ fontWeight: 600 }}>{label}:</span>{" "}
-      <span style={{ color, fontWeight: 600 }}>{status}</span>
-      {link && (
-        <>
-          {" "}
-          <a
-            href={link}
-            target="_blank"
-            style={{ color: "#60a5fa", fontSize: 14, marginLeft: 6 }}
-          >
-            open →
-          </a>
-        </>
-      )}
-    </div>
-  );
-}
-
-function buildEnsLink(result: any) {
-  if (!result?.ens) return null;
-  if (result.ens.available) return "https://app.ens.domains/";
-  if (result.ens.address)
-    return `https://etherscan.io/address/${result.ens.address}`;
-  return null;
-}
-
-function buildFnameLink(result: any) {
-  if (!result?.fname) return null;
-  if (result.fname.available) return null;
-  if (result.fname.currentOwnerFid)
-    return `https://warpcast.com/~/profiles/${result.fname.currentOwnerFid}`;
-  return null;
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  wrap: {
-    maxWidth: 480,
-    margin: "0 auto",
-    padding: 24,
-    textAlign: "center",
-  },
-  h1: {
-    fontSize: 26,
-    marginBottom: 20,
-    fontWeight: 700,
-  },
-  input: {
-    width: "100%",
-    padding: "12px 14px",
-    fontSize: 16,
-    borderRadius: 8,
-    border: "1px solid #444",
-    outline: "none",
-    background: "#020617",
-    color: "#fff",
-    marginBottom: 12,
-  },
-  btn: {
-    width: "100%",
-    padding: "12px",
-    fontSize: 16,
-    borderRadius: 8,
-    border: "none",
-    background: "#3b82f6",
-    color: "#fff",
-    cursor: "pointer",
-    marginBottom: 20,
-  },
-  errorBox: {
-    padding: 12,
-    borderRadius: 10,
-    background: "#450a0a",
-    color: "#fecaca",
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  card: {
-    background: "#0f172a",
-    padding: 20,
-    borderRadius: 12,
-    border: "1px solid #334155",
-    textAlign: "left",
-  },
-  label: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  value: {
-    fontSize: 20,
-    fontWeight: 700,
-  },
-};
