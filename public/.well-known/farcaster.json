@@ -6,34 +6,43 @@
   },
 
   "miniapp": {
-    "version": 1,
+    "version": "1",
+
     "name": "Base Name Radar",
-    "subtitle": "Instant ENS + FName availability",
-    "tagline": "Check ENS and Farcaster names instantly — in one tap.",
-    "description": "Base Name Radar is a tool for checking ENS (.eth) and Farcaster FNames. See availability, ownership, avatars, custody address, timestamps and more — instantly on Base.",
-    
+
+    "subtitle": "ENS and FName check",
+    "tagline": "Check name availability",
+    "description": "Base Name Radar checks ENS (.eth) and Farcaster FNames. See availability, ownership, profile images, custody and transfers.",
+
     "iconUrl": "https://igoreha.online/icon.png",
     "heroImageUrl": "https://igoreha.online/icon.png",
     "imageUrl": "https://igoreha.online/icon.png",
 
     "homeUrl": "https://igoreha.online/mini",
-    "castShareUrl": "https://igoreha.online/mini", 
+    "castShareUrl": "https://igoreha.online/mini",
 
     "buttonTitle": "Check name",
 
     "splashImageUrl": "https://igoreha.online/icon.png",
     "splashBackgroundColor": "#020617",
 
-    "primaryCategory": "tools",
-    "tags": ["ens", "fname", "farcaster", "identity", "base", "checker"],
+    "primaryCategory": "utility",
 
-    "screenshotUrls": [
-      "https://igoreha.online/screenshot1.png",
-      "https://igoreha.online/screenshot2.png"
+    "tags": [
+      "ens",
+      "fname",
+      "farcaster",
+      "identity",
+      "base",
+      "checker"
     ],
 
-    "ogTitle": "Base Name Radar — ENS + FName Checker",
-    "ogDescription": "Check ENS and Farcaster names instantly.",
+    "screenshotUrls": [
+      "https://igoreha.online/screenshot1.png"
+    ],
+
+    "ogTitle": "Base Name Radar",
+    "ogDescription": "Check ENS and FNames instantly.",
     "ogImageUrl": "https://igoreha.online/icon.png"
   }
 }
