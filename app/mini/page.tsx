@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { sdk } from "@farcaster/miniapp-sdk";  // ← правильный SDK Mini Apps
 
 type EnsResult = {
   service: "ensideas";
@@ -35,14 +36,16 @@ export default function MiniPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
 
-  // ✔ Correct Mini App ready signal
+  // ✔ Correct Mini App ready signal using the OFFICIAL SDK
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if ((window as any).farcaster?.actions?.ready) {
-        (window as any).farcaster.actions.ready();
+    async function init() {
+      try {
+        await sdk.actions.ready();
+      } catch (err) {
+        console.error("MiniApp ready() error:", err);
       }
-      window.parent.postMessage({ type: "farcaster:ready" }, "*");
     }
+    init();
   }, []);
 
   async function handleCheck(e: FormEvent) {
@@ -227,10 +230,7 @@ function short(addr: string, l = 6, r = 4) {
   return `${addr.slice(0, l)}…${addr.slice(-r)}`;
 }
 
-// -------------------------------------------------
-// ✔ FULL STYLES OBJECT (NO PLACEHOLDERS)
-// -------------------------------------------------
-
+// styles unchanged
 const s: Record<string, React.CSSProperties> = {
   root: {
     minHeight: "100vh",
@@ -239,7 +239,6 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "center",
   },
-
   card: {
     width: "100%",
     maxWidth: 480,
@@ -249,19 +248,16 @@ const s: Record<string, React.CSSProperties> = {
     border: "1px solid #1e293b",
     color: "white",
   },
-
   title: {
     fontSize: 20,
     fontWeight: 700,
     marginBottom: 16,
   },
-
   form: {
     display: "flex",
     gap: 8,
     marginBottom: 12,
   },
-
   input: {
     flex: 1,
     padding: "10px 14px",
@@ -271,7 +267,6 @@ const s: Record<string, React.CSSProperties> = {
     color: "white",
     fontSize: 14,
   },
-
   button: {
     padding: "10px 14px",
     borderRadius: 10,
@@ -281,15 +276,12 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: "pointer",
   },
-
   error: {
     color: "#f87171",
     fontSize: 13,
     marginBottom: 8,
   },
-
   resultRoot: { marginTop: 8 },
-
   resultHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -297,29 +289,24 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     opacity: 0.8,
   },
-
   resultName: {
     fontSize: 18,
     fontWeight: 600,
     marginBottom: 12,
   },
-
   badge: {
     padding: "4px 10px",
     borderRadius: 999,
     fontSize: 12,
     fontWeight: 600,
   },
-
   badgeFree: { background: "#14532d", color: "#bbf7d0" },
   badgeTaken: { background: "#450a0a", color: "#fecaca" },
-
   section: {
     borderTop: "1px solid #1e293b",
     paddingTop: 12,
     marginTop: 12,
   },
-
   sectionHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -327,35 +314,28 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 15,
     fontWeight: 600,
   },
-
   badgeSmall: {
     padding: "2px 8px",
     borderRadius: 999,
     fontSize: 11,
   },
-
   smallFree: { background: "#166534", color: "#bbf7d0" },
   smallTaken: { background: "#7f1d1d", color: "#fecaca" },
-
   value: {
     fontSize: 16,
     fontWeight: 600,
   },
-
   row: {
     display: "flex",
     justifyContent: "space-between",
     marginTop: 6,
     fontSize: 14,
   },
-
   label: { opacity: 0.6 },
-
   mono: {
     fontFamily: "monospace",
     fontSize: 12,
   },
-
   avatar: {
     width: 58,
     height: 58,
@@ -363,7 +343,6 @@ const s: Record<string, React.CSSProperties> = {
     marginTop: 8,
     marginBottom: 8,
   },
-
   availableHint: {
     fontSize: 13,
     marginTop: 6,
