@@ -1,11 +1,26 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect } from "react";
+import { sdk } from "@farcaster/mini-apps-sdk";
+
+let sdk: any = null;
+try {
+  sdk = require("@farcaster/mini-apps-sdk").sdk;
+} catch (e) {
+}
 
 function normalizeStatus(obj: any) {
   if (!obj) return "error";
   if (obj.error) return "error";
   return obj.available ? "free" : "taken";
 }
+useEffect(() => {
+  try {
+    sdk.actions.ready();
+  } catch (e) {
+    console.warn("Mini App ready() unavailable outside Warpcast");
+  }
+}, []);
 
 export default function MiniCheckPage() {
   const [name, setName] = useState("");
