@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
+import { sdk } from "@farcaster/mini-apps-sdk"; // ← правильный SDK ДЛЯ MINI APP
 
 type EnsResult = {
   service: "ensideas";
@@ -35,6 +36,11 @@ export default function MiniPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
 
+  // 🚀 Сообщаем Warpcast, что контент мини-аппы готов
+  useEffect(() => {
+    sdk.actions.ready();
+  }, []);
+
   async function handleCheck(e: FormEvent) {
     e.preventDefault();
 
@@ -50,7 +56,7 @@ export default function MiniPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        setError(json.error || "Request error");
+        setError(json.error || "Request failed");
         return;
       }
 
@@ -74,17 +80,15 @@ export default function MiniPage() {
             style={s.input}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter name, e.g. igoreha"
+            placeholder="Enter a name (e.g. igoreha)"
           />
           <button style={s.button} disabled={loading}>
             {loading ? "…" : "Check"}
           </button>
         </form>
 
-        {/* ERROR */}
         {error && <div style={s.error}>{error}</div>}
 
-        {/* RESULT */}
         {result && !error && (
           <div style={s.resultRoot}>
             <div style={s.resultHeader}>
@@ -105,7 +109,7 @@ export default function MiniPage() {
 
             <div style={s.resultName}>{result.name}</div>
 
-            {/* ENS BLOCK */}
+            {/* ENS */}
             <div style={s.section}>
               <div style={s.sectionHeader}>
                 <span>ENS (.eth)</span>
@@ -153,7 +157,7 @@ export default function MiniPage() {
               )}
             </div>
 
-            {/* FNAME BLOCK */}
+            {/* FNAME */}
             <div style={s.section}>
               <div style={s.sectionHeader}>
                 <span>Farcaster FName</span>
