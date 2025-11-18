@@ -1,26 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
-import { sdk } from "@farcaster/mini-apps-sdk";
+import { useEffect, useState } from "react";
 
-let sdk: any = null;
-try {
-  sdk = require("@farcaster/mini-apps-sdk").sdk;
-} catch (e) {
-}
+export default function MiniPage() {
+  const [ready, setReady] = useState(false);
 
-function normalizeStatus(obj: any) {
-  if (!obj) return "error";
-  if (obj.error) return "error";
-  return obj.available ? "free" : "taken";
-}
-useEffect(() => {
-  try {
-    sdk.actions.ready();
-  } catch (e) {
-    console.warn("Mini App ready() unavailable outside Warpcast");
-  }
-}, []);
+  useEffect(() => {
+    let _sdk = null;
+    try {
+      // SDK существует только внутри Warpcast Mini App
+      _sdk = require("@farcaster/mini-apps-sdk").sdk;
+    } catch (e) {
+      console.log("SDK cannot load (browser), this is normal");
+    }
+
+    if (_sdk?.actions) {
+      try {
+        _sdk.actions.ready();
+        console.log("Mini App ready() sent");
+        setReady(true);
+      } catch (e) {
+        console.log("sdk.ready() failed (safe)");
+      }
+    } else {
+      console.log("SDK not available – browser mode");
+    }
+  }, []);
 
 export default function MiniCheckPage() {
   const [name, setName] = useState("");
