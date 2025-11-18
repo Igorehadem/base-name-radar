@@ -1,6 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        source: '/mini',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors https://warpcast.com https://*.warpcast.com;",
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL'
+          }
+        ],
+      },
+      {
+        source: '/mini/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors https://warpcast.com https://*.warpcast.com;",
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL'
+          }
+        ],
+      }
+    ];
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
