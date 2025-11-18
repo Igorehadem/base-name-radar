@@ -1,190 +1,205 @@
 "use client";
 
-import React, { useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 
-type EnsData = {
-  name?: string;
-  owner?: string;
+type EnsResult = {
+  service: "ensideas";
+  domain: string;
+  available: boolean;
+  address?: string;
   displayName?: string;
-  avatar?: string;
+  avatar?: string | null;
+  error?: string;
 };
 
-type FnameData = {
-  username?: string;
-  fid?: number;
-  custodyAddress?: string;
-  lastTransfer?: number;
-};
-
-type NameResult = {
+type FnameResult = {
+  service: "farcaster-fnames";
   name: string;
   available: boolean;
-  ens?: EnsData;
-  farcaster?: FnameData;
+  currentOwnerFid?: number;
+  ownerAddress?: string;
+  lastTransferTimestamp?: number;
+  error?: string;
+};
+
+type ApiResult = {
+  name: string;
+  ens: EnsResult;
+  fname: FnameResult;
   error?: string;
 };
 
 export default function MiniPage() {
-  const [input, setInput] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<NameResult | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ApiResult | null>(null);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleCheck(e: FormEvent) {
     e.preventDefault();
-    const name = input.trim().toLowerCase();
-    if (!name) return;
+
+    const trimmed = name.trim().toLowerCase();
+    if (!trimmed) return;
 
     setLoading(true);
+    setError(null);
     setResult(null);
-    setErrorMsg(null);
 
     try {
-      const res = await fetch(`/api/name/${encodeURIComponent(name)}`);
-      const json = (await res.json()) as NameResult;
+      const res = await fetch(`/api/name/${encodeURIComponent(trimmed)}`);
+      const json = await res.json();
 
-      if (!res.ok || json.error) {
-        setErrorMsg(json.error || "Something went wrong");
-      } else {
-        setResult(json);
+      if (!res.ok) {
+        setError(json.error || "Request error");
+        return;
       }
-    } catch {
-      setErrorMsg("Network error — try again");
+
+      setResult(json);
+    } catch (e: any) {
+      setError(e?.message || "Network error");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={styles.root}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Base ENS + FName Checker</h1>
+    <div style={s.root}>
+      <div style={s.card}>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <h1 style={s.title}>Base ENS + FName Checker</h1>
+
+        {/* FORM */}
+        <form onSubmit={handleCheck} style={s.form}>
           <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter a name"
-            autoComplete="off"
-            style={styles.input}
+            style={s.input}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter name, e.g. igoreha"
           />
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={loading || !input.trim()}
-          >
+          <button style={s.button} disabled={loading}>
             {loading ? "…" : "Check"}
           </button>
         </form>
 
-        {errorMsg && <p style={styles.error}>{errorMsg}</p>}
+        {/* ERROR */}
+        {error && <div style={s.error}>{error}</div>}
 
-        {result && (
-          <div style={styles.resultBox}>
-            <div style={styles.nameRow}>
-              <span style={styles.nameLabel}>Name</span>
+        {/* RESULT */}
+        {result && !error && (
+          <div style={s.resultRoot}>
+            <div style={s.resultHeader}>
+              <span>Name</span>
               <span
                 style={{
-                  ...styles.badge,
-                  ...(result.available
-                    ? styles.badgeFree
-                    : styles.badgeTaken),
+                  ...s.badge,
+                  ...(result.ens.available && result.fname.available
+                    ? s.badgeFree
+                    : s.badgeTaken),
                 }}
               >
-                {result.available ? "Available" : "Taken"}
+                {result.ens.available && result.fname.available
+                  ? "Available"
+                  : "Taken"}
               </span>
             </div>
 
-            <div style={styles.nameValue}>{result.name}</div>
+            <div style={s.resultName}>{result.name}</div>
 
-            {/* ENS block */}
-            {result.ens && (result.ens.name || result.ens.owner) && (
-              <div style={styles.section}>
-                <div style={styles.sectionTitle}>ENS (.eth)</div>
+            {/* ENS BLOCK */}
+            <div style={s.section}>
+              <div style={s.sectionHeader}>
+                <span>ENS (.eth)</span>
+                <span
+                  style={{
+                    ...s.badgeSmall,
+                    ...(result.ens.available ? s.smallFree : s.smallTaken),
+                  }}
+                >
+                  {result.ens.available ? "Available" : "Taken"}
+                </span>
+              </div>
 
-                {result.ens.avatar && (
-                  <img
-                    src={result.ens.avatar}
-                    style={styles.avatar}
-                    alt=""
-                    onError={(e) =>
-                      ((e.target as HTMLImageElement).style.display = "none")
-                    }
-                  />
-                )}
+              <div style={s.value}>{result.ens.domain}</div>
 
-                {result.ens.name && (
-                  <div style={styles.row}>
-                    <span style={styles.label}>Name</span>
-                    <span>{result.ens.name}</span>
+              {!result.ens.available && (
+                <>
+                  {result.ens.avatar && (
+                    <img
+                      src={result.ens.avatar}
+                      style={s.avatar}
+                      alt=""
+                      onError={(e) =>
+                        ((e.target as HTMLImageElement).style.display = "none")
+                      }
+                    />
+                  )}
+
+                  <div style={s.row}>
+                    <span style={s.label}>Owner</span>
+                    <span style={s.mono}>{short(result.ens.address!)}</span>
                   </div>
-                )}
 
-                {result.ens.owner && (
-                  <div style={styles.row}>
-                    <span style={styles.label}>Owner</span>
-                    <span style={styles.mono}>
-                      {shorten(result.ens.owner)}
+                  {result.ens.displayName && (
+                    <div style={s.row}>
+                      <span style={s.label}>Display</span>
+                      <span>{result.ens.displayName}</span>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {result.ens.available && (
+                <div style={s.availableHint}>ENS name is free</div>
+              )}
+            </div>
+
+            {/* FNAME BLOCK */}
+            <div style={s.section}>
+              <div style={s.sectionHeader}>
+                <span>Farcaster FName</span>
+                <span
+                  style={{
+                    ...s.badgeSmall,
+                    ...(result.fname.available ? s.smallFree : s.smallTaken),
+                  }}
+                >
+                  {result.fname.available ? "Available" : "Taken"}
+                </span>
+              </div>
+
+              <div style={s.value}>@{result.fname.name}</div>
+
+              {!result.fname.available && (
+                <>
+                  <div style={s.row}>
+                    <span style={s.label}>FID</span>
+                    <span>{result.fname.currentOwnerFid}</span>
+                  </div>
+
+                  <div style={s.row}>
+                    <span style={s.label}>Custody</span>
+                    <span style={s.mono}>
+                      {short(result.fname.ownerAddress!)}
                     </span>
                   </div>
-                )}
 
-                {result.ens.displayName && (
-                  <div style={styles.row}>
-                    <span style={styles.label}>Display</span>
-                    <span>{result.ens.displayName}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* FName block */}
-            {result.farcaster &&
-              (result.farcaster.username || result.farcaster.fid) && (
-                <div style={styles.section}>
-                  <div style={styles.sectionTitle}>Farcaster FName</div>
-
-                  {result.farcaster.username && (
-                    <div style={styles.row}>
-                      <span style={styles.label}>Username</span>
-                      <a
-                        href={`https://warpcast.com/${result.farcaster.username}`}
-                        target="_blank"
-                        style={styles.link}
-                      >
-                        @{result.farcaster.username}
-                      </a>
-                    </div>
-                  )}
-
-                  {result.farcaster.fid !== undefined && (
-                    <div style={styles.row}>
-                      <span style={styles.label}>FID</span>
-                      <span>{result.farcaster.fid}</span>
-                    </div>
-                  )}
-
-                  {result.farcaster.custodyAddress && (
-                    <div style={styles.row}>
-                      <span style={styles.label}>Custody</span>
-                      <span style={styles.mono}>
-                        {shorten(result.farcaster.custodyAddress)}
-                      </span>
-                    </div>
-                  )}
-
-                  {result.farcaster.lastTransfer && (
-                    <div style={styles.row}>
-                      <span style={styles.label}>Last transfer</span>
+                  {result.fname.lastTransferTimestamp && (
+                    <div style={s.row}>
+                      <span style={s.label}>Last transfer</span>
                       <span>
                         {new Date(
-                          result.farcaster.lastTransfer * 1000
+                          result.fname.lastTransferTimestamp * 1000
                         ).toLocaleString()}
                       </span>
                     </div>
                   )}
-                </div>
+                </>
               )}
+
+              {result.fname.available && (
+                <div style={s.availableHint}>FName is free</div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -192,146 +207,149 @@ export default function MiniPage() {
   );
 }
 
-function shorten(addr: string) {
-  if (addr.length <= 12) return addr;
-  return addr.slice(0, 6) + "…" + addr.slice(-4);
+function short(addr: string, l = 6, r = 4) {
+  return `${addr.slice(0, l)}…${addr.slice(-r)}`;
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const s: Record<string, React.CSSProperties> = {
   root: {
     minHeight: "100vh",
     background: "#020617",
-    color: "white",
-    padding: "12px",
-    boxSizing: "border-box",
+    padding: 12,
     display: "flex",
     justifyContent: "center",
   },
 
   card: {
     width: "100%",
-    maxWidth: "500px",
-    padding: "16px",
-    borderRadius: "14px",
+    maxWidth: 480,
     background: "#0f172a",
+    borderRadius: 16,
+    padding: 16,
     border: "1px solid #1e293b",
+    color: "white",
   },
 
   title: {
-    fontSize: "20px",
+    fontSize: 20,
     fontWeight: 700,
-    marginBottom: "16px",
+    marginBottom: 16,
   },
 
   form: {
     display: "flex",
-    gap: "8px",
-    marginBottom: "12px",
+    gap: 8,
+    marginBottom: 12,
   },
 
   input: {
     flex: 1,
     padding: "10px 14px",
-    borderRadius: "10px",
+    borderRadius: 10,
     background: "#1e293b",
     border: "1px solid #334155",
     color: "white",
-    fontSize: "14px",
+    fontSize: 14,
   },
 
   button: {
     padding: "10px 14px",
-    borderRadius: "10px",
+    borderRadius: 10,
     background: "#2563eb",
-    color: "white",
     border: "none",
+    color: "white",
     fontWeight: 600,
     cursor: "pointer",
   },
 
   error: {
     color: "#f87171",
-    fontSize: "13px",
-    marginBottom: "8px",
+    fontSize: 13,
+    marginBottom: 8,
   },
 
-  resultBox: {
-    marginTop: "12px",
-    borderTop: "1px solid #1e293b",
-    paddingTop: "12px",
+  resultRoot: {
+    marginTop: 8,
   },
 
-  nameRow: {
+  resultHeader: {
     display: "flex",
     justifyContent: "space-between",
-    marginBottom: "4px",
+    marginBottom: 4,
+    fontSize: 14,
+    opacity: 0.8,
   },
 
-  nameLabel: {
-    opacity: 0.6,
-    fontSize: "13px",
+  resultName: {
+    fontSize: 18,
+    fontWeight: 600,
+    marginBottom: 12,
   },
 
   badge: {
-    padding: "3px 10px",
-    borderRadius: "999px",
-    fontSize: "11px",
+    padding: "4px 10px",
+    borderRadius: 999,
+    fontSize: 12,
     fontWeight: 600,
   },
 
-  badgeFree: {
-    background: "#14532d",
-    color: "#bbf7d0",
-  },
-
-  badgeTaken: {
-    background: "#450a0a",
-    color: "#fecaca",
-  },
-
-  nameValue: {
-    fontSize: "18px",
-    fontWeight: 600,
-  },
+  badgeFree: { background: "#14532d", color: "#bbf7d0" },
+  badgeTaken: { background: "#450a0a", color: "#fecaca" },
 
   section: {
-    marginTop: "14px",
     borderTop: "1px solid #1e293b",
-    paddingTop: "10px",
+    paddingTop: 12,
+    marginTop: 12,
   },
 
-  sectionTitle: {
-    fontSize: "13px",
-    opacity: 0.9,
-    marginBottom: "6px",
+  sectionHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 4,
+    fontSize: 15,
     fontWeight: 600,
   },
 
-  avatar: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "50%",
-    marginBottom: "8px",
+  badgeSmall: {
+    padding: "2px 8px",
+    borderRadius: 999,
+    fontSize: 11,
+  },
+
+  smallFree: { background: "#166534", color: "#bbf7d0" },
+  smallTaken: { background: "#7f1d1d", color: "#fecaca" },
+
+  value: {
+    fontSize: 16,
+    fontWeight: 600,
   },
 
   row: {
     display: "flex",
     justifyContent: "space-between",
-    fontSize: "13px",
-    marginBottom: "4px",
+    marginTop: 6,
+    fontSize: 14,
   },
 
-  label: {
-    opacity: 0.6,
-  },
+  label: { opacity: 0.6 },
 
   mono: {
     fontFamily: "monospace",
-    fontSize: "12px",
+    fontSize: 12,
   },
 
-  link: {
-    color: "#60a5fa",
-    textDecoration: "none",
+  avatar: {
+    width: 58,
+    height: 58,
+    borderRadius: "50%",
+    marginTop: 8,
+    marginBottom: 8,
+  },
+
+  availableHint: {
+    fontSize: 13,
+    marginTop: 6,
+    opacity: 0.8,
+    color: "#4ade80",
   },
 };
