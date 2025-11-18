@@ -35,19 +35,13 @@ export default function MiniPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
 
-  // 🔥 
+  // ✔ Correct Mini App ready signal
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // 1. 
       if ((window as any).farcaster?.actions?.ready) {
         (window as any).farcaster.actions.ready();
       }
-
-      // 2.
-      window.parent.postMessage(
-        { type: "farcaster:ready" },
-        "*"
-      );
+      window.parent.postMessage({ type: "farcaster:ready" }, "*");
     }
   }, []);
 
@@ -81,13 +75,12 @@ export default function MiniPage() {
   return (
     <div style={s.root}>
       <div style={s.card}>
-
         <h1 style={s.title}>Base ENS + FName Checker</h1>
 
         <form onSubmit={handleCheck} style={s.form}>
           <input
             style={s.input}
-            placeholder="igoreha"
+            placeholder="Enter name (igoreha)"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -118,12 +111,8 @@ export default function MiniPage() {
 
             <div style={s.resultName}>{result.name}</div>
 
-            {/* ENS */}
             <EnsSection data={result.ens} />
-
-            {/* FNAME */}
             <FnameSection data={result.fname} />
-
           </div>
         )}
       </div>
@@ -238,5 +227,147 @@ function short(addr: string, l = 6, r = 4) {
   return `${addr.slice(0, l)}…${addr.slice(-r)}`;
 }
 
-// 
-const s = { /* () */ };
+// -------------------------------------------------
+// ✔ FULL STYLES OBJECT (NO PLACEHOLDERS)
+// -------------------------------------------------
+
+const s: Record<string, React.CSSProperties> = {
+  root: {
+    minHeight: "100vh",
+    background: "#020617",
+    padding: 12,
+    display: "flex",
+    justifyContent: "center",
+  },
+
+  card: {
+    width: "100%",
+    maxWidth: 480,
+    background: "#0f172a",
+    borderRadius: 16,
+    padding: 16,
+    border: "1px solid #1e293b",
+    color: "white",
+  },
+
+  title: {
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 16,
+  },
+
+  form: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 12,
+  },
+
+  input: {
+    flex: 1,
+    padding: "10px 14px",
+    borderRadius: 10,
+    background: "#1e293b",
+    border: "1px solid #334155",
+    color: "white",
+    fontSize: 14,
+  },
+
+  button: {
+    padding: "10px 14px",
+    borderRadius: 10,
+    background: "#2563eb",
+    border: "none",
+    color: "white",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+
+  error: {
+    color: "#f87171",
+    fontSize: 13,
+    marginBottom: 8,
+  },
+
+  resultRoot: { marginTop: 8 },
+
+  resultHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 4,
+    fontSize: 14,
+    opacity: 0.8,
+  },
+
+  resultName: {
+    fontSize: 18,
+    fontWeight: 600,
+    marginBottom: 12,
+  },
+
+  badge: {
+    padding: "4px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 600,
+  },
+
+  badgeFree: { background: "#14532d", color: "#bbf7d0" },
+  badgeTaken: { background: "#450a0a", color: "#fecaca" },
+
+  section: {
+    borderTop: "1px solid #1e293b",
+    paddingTop: 12,
+    marginTop: 12,
+  },
+
+  sectionHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: 600,
+  },
+
+  badgeSmall: {
+    padding: "2px 8px",
+    borderRadius: 999,
+    fontSize: 11,
+  },
+
+  smallFree: { background: "#166534", color: "#bbf7d0" },
+  smallTaken: { background: "#7f1d1d", color: "#fecaca" },
+
+  value: {
+    fontSize: 16,
+    fontWeight: 600,
+  },
+
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: 6,
+    fontSize: 14,
+  },
+
+  label: { opacity: 0.6 },
+
+  mono: {
+    fontFamily: "monospace",
+    fontSize: 12,
+  },
+
+  avatar: {
+    width: 58,
+    height: 58,
+    borderRadius: "50%",
+    marginTop: 8,
+    marginBottom: 8,
+  },
+
+  availableHint: {
+    fontSize: 13,
+    marginTop: 6,
+    opacity: 0.8,
+    color: "#4ade80",
+  },
+};
