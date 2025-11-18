@@ -15,5 +15,5 @@
     "requiredChains": ["eip155:8453"],
     "tags": ["names", "ens", "farcaster", "base"]
   }
-}
+
 
