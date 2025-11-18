@@ -79,8 +79,8 @@ export default function CheckPage() {
       <h1 style={styles.title}>ENS + FNames Name Checker</h1>
 
       <p style={styles.subtitle}>
-        Введи базовое имя (без суффиксов) — мы проверим{" "}
-        <strong>name.eth</strong> в ENS и <strong>fname</strong> в Farcaster.
+        Input your name — i'll check{" "}
+        <strong>name.eth</strong> in ENS and <strong>fname</strong> в Farcaster.
       </p>
 
       <div style={styles.form}>
