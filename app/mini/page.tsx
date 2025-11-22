@@ -141,6 +141,26 @@ function EnsSection({ data }: { data: EnsResult }) {
 
       <div style={s.value}>{data.domain}</div>
 
+      {!available && data.currentOwnerFid && (
+        <a
+          href={`https://warpcast.com/~/profiles/${data.currentOwnerFid}`}
+          target="_blank"
+          style={s.linkButton}
+        >
+          View on Warpcast
+        </a>
+      )}
+      
+      {available && (
+        <a
+          href={`https://warpcast.com/search?q=${data.name}`}
+          target="_blank"
+          style={s.linkButton}
+        >
+          Register on Warpcast
+        </a>
+      )}
+
       {!available && (
         <>
           {data.avatar && (
@@ -165,6 +185,26 @@ function EnsSection({ data }: { data: EnsResult }) {
             </div>
           )}
         </>
+      )}
+
+      {!available && (
+        <a
+          href={`https://app.ens.domains/name/${data.domain}`}
+          target="_blank"
+          style={s.linkButton}
+        >
+          Open in ENS
+        </a>
+      )}
+      
+      {available && (
+        <a
+          href={`https://app.ens.domains/name/${data.domain}`}
+          target="_blank"
+          style={s.linkButton}
+        >
+          Register on ENS
+        </a>
       )}
 
       {available && (
@@ -342,6 +382,17 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     marginTop: 8,
     marginBottom: 8,
+  },
+  linkButton: {
+    marginTop: 10,
+    display: "block",
+    textAlign: "center",
+    padding: "10px 14px",
+    background: "#3b82f6",
+    borderRadius: 10,
+    color: "white",
+    fontWeight: 600,
+    textDecoration: "none",
   },
   availableHint: {
     fontSize: 13,
